@@ -20,6 +20,17 @@
       color: #f8fafc;
       margin: 0; padding: 15px;
     }
+    /* Progress Bar Styles */
+    .progress-container {
+      width: 100%; height: 8px; background: rgba(255,255,255,0.1);
+      border-radius: 10px; margin-bottom: 20px; overflow: hidden;
+      display: none;
+    }
+    #progress_fill {
+      height: 100%; width: 0%; background: var(--primary);
+      transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
+    }
+
     .card {
       background: var(--glass);
       backdrop-filter: blur(12px);
@@ -28,8 +39,31 @@
       padding: 20px;
       margin-bottom: 20px;
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
     }
-    h2 { color: var(--primary); font-size: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+    
+    /* Toggle Identitas Logic */
+    .card-collapsed {
+      padding: 10px 20px;
+    }
+    .card-collapsed .card-content {
+      display: none;
+    }
+    .card-header-toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .badge-info {
+      font-size: 0.75rem;
+      background: var(--primary);
+      padding: 2px 8px;
+      border-radius: 10px;
+      display: none;
+    }
+
+    h2 { color: var(--primary); font-size: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-top: 0; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .input-box { margin-bottom: 15px; }
     label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #94a3b8; }
@@ -50,7 +84,8 @@
       color: #94a3b8;
       cursor: not-allowed;
     }
-    /* Stepper Styling */
+    
+    /* Stepper & Navigation Styling */
     .pilar-section {
       background: rgba(255,255,255,0.03);
       padding: 15px; border-radius: 8px; margin-top: 10px;
@@ -66,9 +101,13 @@
       to { opacity: 1; transform: translateY(0); }
     }
     
-    .question-item {
-      margin-bottom: 12px;
+    .nav-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    .btn-back {
+      background: #334155; color: white; border: none; flex: 1;
+      padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer;
     }
+
+    .question-item { margin-bottom: 12px; }
     .btn-save {
       background: var(--primary);
       color: white; border: none; width: 100%;
@@ -87,12 +126,18 @@
     
     .btn-next {
       background: var(--success);
-      color: white; border: none; width: 100%;
+      color: white; border: none; flex: 2;
       padding: 12px; border-radius: 12px;
       font-weight: bold; cursor: pointer;
-      margin-top: 15px;
       display: none;
     }
+
+    /* Ringkasan Styles */
+    .summary-box {
+      margin-top: 15px; padding: 12px; border-radius: 8px;
+      background: rgba(255,255,255,0.05); font-size: 0.85rem;
+    }
+    .summary-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
 
     /* Modern Modal Styling */
     .modal-overlay {
@@ -104,7 +149,7 @@
     }
     .modal-content {
       background: #1e293b;
-      width: 100%; max-width: 500px;
+      width: 100%; max-width: 600px;
       border-radius: 24px; border: 1px solid var(--primary);
       padding: 25px; max-height: 90vh; overflow-y: auto;
       box-shadow: 0 0 50px rgba(14, 165, 233, 0.3);
@@ -114,6 +159,34 @@
     
     .modal-header { text-align: center; margin-bottom: 20px; }
     .modal-header h3 { color: var(--primary); margin: 0; font-size: 1.5rem; }
+    
+    /* Preview Table Styling */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 15px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      background: #0f172a;
+    }
+    th {
+      background: #1e293b;
+      color: var(--primary);
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #334155;
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      white-space: nowrap;
+    }
+
     .result-row { 
       display: flex; justify-content: space-between; align-items: center;
       padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -128,11 +201,6 @@
       padding: 12px; border-radius: 12px; margin-top: 15px; cursor: pointer;
     }
 
-    .status-display {
-      margin-top: 15px; padding: 12px; border-radius: 8px;
-      text-align: center; font-weight: bold; font-size: 1rem;
-      background: rgba(255,255,255,0.05); border: 1px dashed #334155;
-    }
     .status-val {
       display: inline-block; padding: 2px 10px; border-radius: 4px;
       margin-top: 5px; text-transform: uppercase; font-size: 0.8rem;
@@ -155,66 +223,94 @@
 </head>
 <body>
 
-  <!-- MODAL RESULT -->
+  <div class="progress-container" id="pilarProgress">
+    <div id="progress_fill"></div>
+  </div>
+
   <div class="modal-overlay" id="modalResult">
     <div class="modal-content">
       <div class="modal-header">
         <h3>✨ Hasil Analisa STBM</h3>
         <p style="font-size: 0.8rem; color: #94a3b8;" id="res_nama_kk"></p>
       </div>
+      
       <div id="resultList"></div>
+      
+      <div class="table-container">
+        <table>
+          <thead id="preview_head"></thead>
+          <tbody id="preview_body"></tbody>
+        </table>
+      </div>
+
       <div class="advice-box" id="adviceContent"></div>
-      <button class="btn-close" onclick="closeModal()">Tutup & Kembali</button>
-      <button class="btn-save" style="margin-top: 10px; background: var(--success);" onclick="simpanData()">SIMPAN PERMANEN</button>
+      
+      <div class="nav-buttons">
+          <button class="btn-close" onclick="closeModal()">Tutup</button>
+          <button class="btn-save" style="margin-top: 15px; background: var(--excel); flex: 2;" onclick="exportToExcel()">📥 UNDUH EXCEL</button>
+      </div>
+      <button class="btn-save" style="background: var(--success);" onclick="simpanData()">✅ SIMPAN KE DATABASE</button>
     </div>
   </div>
 
-  <div class="card">
-    <h2>📍 Data Lokasi & Petugas</h2>
-    <div class="grid-2">
-      <div class="input-box">
-        <label>Puskesmas</label>
-        <input type="text" id="puskesmas" value="UPTD PUSKESMAS SAMPANAHAN" readonly>
-      </div>
-      <div class="input-box">
-        <label>Desa/Kel</label>
-        <select id="desa" class="kk-input">
-          <option value="" disabled selected>Pilih Desa</option>
-          <option value="SAMPANAHAN HILIR">SAMPANAHAN HILIR</option>
-          <option value="SAMPANAHAN HULU">SAMPANAHAN HULU</option>
-          <option value="SUKA MAJU">SUKA MAJU</option>
-          <option value="BANJARSARI">BANJARSARI</option>
-        </select>
-      </div>
-      <div class="input-box"><label>Kecamatan</label><input type="text" id="kecamatan" value="SAMPANAHAN" class="kk-input"></div>
-      <div class="input-box"><label>Tanggal</label><input type="date" id="tanggal" class="kk-input"></div>
+  <div class="card" id="card_lokasi">
+    <div class="card-header-toggle" onclick="toggleCard('card_lokasi')">
+      <h2>📍 Data Lokasi & Petugas</h2>
+      <span class="badge-info" id="badge_lokasi">Tersimpan</span>
     </div>
-    <div class="input-box"><label>Nama Petugas Moniver</label><input type="text" id="petugas" class="kk-input"></div>
+    <div class="card-content">
+      <div class="grid-2">
+        <div class="input-box">
+          <label>Puskesmas</label>
+          <input type="text" id="puskesmas" value="UPTD PUSKESMAS SAMPANAHAN" readonly>
+        </div>
+        <div class="input-box">
+          <label>Desa/Kel</label>
+          <select id="desa" class="kk-input" onchange="saveDraft()">
+            <option value="" disabled selected>Pilih Desa</option>
+            <option value="SAMPANAHAN HILIR">SAMPANAHAN HILIR</option>
+            <option value="SAMPANAHAN HULU">SAMPANAHAN HULU</option>
+            <option value="SUKA MAJU">SUKA MAJU</option>
+            <option value="BANJARSARI">BANJARSARI</option>
+          </select>
+        </div>
+        <div class="input-box"><label>Kecamatan</label><input type="text" id="kecamatan" value="SAMPANAHAN" class="kk-input" oninput="saveDraft()"></div>
+        <div class="input-box"><label>Tanggal</label><input type="date" id="tanggal" class="kk-input" onchange="saveDraft()"></div>
+      </div>
+      <div class="input-box"><label>Nama Petugas Moniver</label><input type="text" id="petugas" class="kk-input" oninput="saveDraft()"></div>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>👤 Identitas KK</h2>
-    <div class="input-box"><label>Nomor KK</label><input type="number" id="no_kk" class="kk-input"></div>
-    <div class="input-box"><label>Nama Kepala Keluarga</label><input type="text" id="nama_kk" class="kk-input"></div>
-    <div class="grid-2">
-      <div class="input-box"><label>Jml Jiwa</label><input type="number" id="jml_jiwa" class="kk-input"></div>
-      <div class="input-box"><label>Jml Menetap</label><input type="number" id="jml_menetap" class="kk-input"></div>
+  <div class="card" id="card_identitas">
+    <div class="card-header-toggle" onclick="toggleCard('card_identitas')">
+      <h2>👤 Identitas KK</h2>
+      <span class="badge-info" id="badge_identitas">Tersimpan</span>
     </div>
-    <button id="btn_save_kk" class="btn-kk btn-save-kk" onclick="lockKK()">SIMPAN IDENTITAS KK</button>
-    <button id="btn_edit_kk" class="btn-kk btn-edit-kk" onclick="unlockKK()">EDIT IDENTITAS KK</button>
+    <div class="card-content">
+      <div class="input-box">
+        <label>Nomor KK (16 Digit)</label>
+        <input type="number" id="no_kk" class="kk-input" oninput="this.value=this.value.slice(0,16); saveDraft();">
+      </div>
+      <div class="input-box"><label>Nama Kepala Keluarga</label><input type="text" id="nama_kk" class="kk-input" oninput="saveDraft()"></div>
+      <div class="grid-2">
+        <div class="input-box"><label>Jml Jiwa</label><input type="number" id="jml_jiwa" class="kk-input" oninput="saveDraft()"></div>
+        <div class="input-box"><label>Jml Menetap</label><input type="number" id="jml_menetap" class="kk-input" oninput="saveDraft()"></div>
+      </div>
+      <button id="btn_save_kk" class="btn-kk btn-save-kk" onclick="lockKK()">SIMPAN IDENTITAS KK</button>
+      <button id="btn_edit_kk" class="btn-kk btn-edit-kk" onclick="unlockKK()">EDIT IDENTITAS KK</button>
+    </div>
   </div>
 
   <div id="kuis_container">
     <div class="card">
-      <h2>📋 Evaluasi 5 Pilar STBM</h2>
+      <h2 id="pilar_title">📋 Evaluasi 5 Pilar STBM</h2>
       
-      <!-- PILAR 1 -->
       <div class="pilar-section active" id="section_p1">
         <label><strong>PILAR 1: STOP BABS</strong></label>
         <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
         <div class="question-item">
           <label>1. Buang air besar di jamban sehat</label>
-          <select id="p1_1" class="p1-input" onchange="hitungStatusP1()">
+          <select id="p1_1" class="p1-input" onchange="hitungStatusP1(); saveDraft();">
             <option value="" disabled selected>Pilih</option>
             <option value="Y">Ya</option>
             <option value="T">Tidak</option>
@@ -222,7 +318,7 @@
         </div>
         <div class="question-item">
           <label>2. Jamban milik sendiri</label>
-          <select id="p1_2" class="p1-input" onchange="hitungStatusP1()">
+          <select id="p1_2" class="p1-input" onchange="hitungStatusP1(); saveDraft();">
             <option value="" disabled selected>Pilih</option>
             <option value="Y">Ya</option>
             <option value="T">Tidak</option>
@@ -230,7 +326,7 @@
         </div>
         <div class="question-item">
           <label>3. Bangunan Bawah (Pilih salah satu):</label>
-          <select id="p1_3" class="p1-input" onchange="hitungStatusP1()">
+          <select id="p1_3" class="p1-input" onchange="hitungStatusP1(); saveDraft();">
             <option value="" disabled selected>Pilih Opsi</option>
             <option value="A">A. Tangki septik disedot 3-5th / SPAL</option>
             <option value="B">B. Tidak pernah disedot > 5th / Baru</option>
@@ -240,22 +336,23 @@
         </div>
         <div class="question-item">
           <label>4. Kloset leher angsa</label>
-          <select id="p1_4" class="p1-input" onchange="hitungStatusP1()">
+          <select id="p1_4" class="p1-input" onchange="hitungStatusP1(); saveDraft();">
             <option value="" disabled selected>Pilih</option>
             <option value="Y">Ya</option>
             <option value="T">Tidak</option>
           </select>
         </div>
-        <button id="btn_next_p1" class="btn-next" onclick="nextStep(2)">LANJUT KE PILAR 2 →</button>
+        <div class="nav-buttons">
+          <button id="btn_next_p1" class="btn-next" onclick="nextStep(2)">LANJUT KE PILAR 2 →</button>
+        </div>
       </div>
 
-      <!-- PILAR 2 -->
       <div class="pilar-section" id="section_p2">
         <label><strong>PILAR 2: CUCI TANGAN PAKAI SABUN</strong></label>
         <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
         <div class="question-item">
           <label>1. Memiliki sarana CTPS (Air Mengalir + Sabun)</label>
-          <select id="p2_1" class="p2-input" onchange="hitungStatusP2()">
+          <select id="p2_1" class="p2-input" onchange="hitungStatusP2(); saveDraft();">
             <option value="" disabled selected>Pilih</option>
             <option value="Y">Ya</option>
             <option value="T">Tidak</option>
@@ -263,7 +360,7 @@
         </div>
         <div class="question-item">
           <label>2. Mampu mempraktikkan cara CTPS</label>
-          <select id="p2_2" class="p2-input" onchange="hitungStatusP2()">
+          <select id="p2_2" class="p2-input" onchange="hitungStatusP2(); saveDraft();">
             <option value="" disabled selected>Pilih</option>
             <option value="Y">Ya</option>
             <option value="T">Tidak</option>
@@ -271,66 +368,140 @@
         </div>
         <div class="question-item">
           <label>3. Mengetahui waktu-waktu kritis CTPS (Min. 3 waktu):</label>
-          <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px;">
-            a. Sebelum makan | b. Sebelum olah makanan | c. Sebelum nyusui/suapi | d. Sesudah BAB
-          </div>
-          <select id="p2_3" class="p2-input" onchange="hitungStatusP2()">
+          <select id="p2_3" class="p2-input" onchange="hitungStatusP2(); saveDraft();">
             <option value="" disabled selected>Pilih</option>
             <option value="Y">Tahu (Min 3)</option>
             <option value="T">Tidak Tahu</option>
           </select>
         </div>
-        <button id="btn_next_p2" class="btn-next" onclick="nextStep(3)">LANJUT KE PILAR 3 →</button>
+        <div class="nav-buttons">
+          <button class="btn-back" onclick="nextStep(1)">← KEMBALI</button>
+          <button id="btn_next_p2" class="btn-next" onclick="nextStep(3)">LANJUT KE PILAR 3 →</button>
+        </div>
       </div>
 
-      <!-- PILAR 3 -->
       <div class="pilar-section" id="section_p3">
         <label><strong>PILAR 3: PAMMRT</strong></label>
         <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
-        <div class="question-item"><label>1a. Pengolahan Air Minum</label><select id="p3_1a" class="p3-input" onchange="hitungStatusP3()"><option value="" disabled selected>Pilih</option><option value="Ya">Ya</option><option value="T">Tidak</option></select></div>
-        <div class="question-item"><label>1b. Pengolahan Air Keruh</label><select id="p3_1b" class="p3-input" onchange="hitungStatusP3()"><option value="" disabled selected>Pilih</option><option value="Ya">Ya</option><option value="T">Tidak</option></select></div>
-        <div class="question-item"><label>2. Wadah Tertutup</label><select id="p3_2" class="p3-input" onchange="hitungStatusP3()"><option value="" disabled selected>Pilih</option><option value="Ya">Ya</option><option value="T">Tidak</option></select></div>
-        <div class="question-item"><label>3. Peralatan Bersih</label><select id="p3_3a" class="p3-input" onchange="hitungStatusP3()"><option value="" disabled selected>Pilih</option><option value="Ya">Ya</option><option value="T">Tidak</option></select></div>
-        <button id="btn_next_p3" class="btn-next" onclick="nextStep(4)">LANJUT KE PILAR 4 →</button>
+        <div class="question-item"><label>1a. Pengolahan Air Minum</label><select id="p3_1a" class="p3-input" onchange="hitungStatusP3(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+        <div class="question-item"><label>1b. Pengolahan Air Keruh</label><select id="p3_1b" class="p3-input" onchange="hitungStatusP3(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+        <div class="question-item"><label>2. Wadah Tertutup</label><select id="p3_2" class="p3-input" onchange="hitungStatusP3(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+        <div class="question-item"><label>3. Peralatan Bersih</label><select id="p3_3a" class="p3-input" onchange="hitungStatusP3(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+        <div class="nav-buttons">
+          <button class="btn-back" onclick="nextStep(2)">← KEMBALI</button>
+          <button id="btn_next_p3" class="btn-next" onclick="nextStep(4)">LANJUT KE PILAR 4 →</button>
+        </div>
       </div>
 
-      <!-- PILAR 4 -->
       <div class="pilar-section" id="section_p4">
         <label><strong>PILAR 4: PENGELOLAAN SAMPAH</strong></label>
         <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
-        <div class="question-item"><label>1. Tidak Sampah Berserakan</label><select id="p4_1" class="p4-input" onchange="hitungStatusP4()"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
-        <div class="question-item"><label>2. Tempat Sampah Tertutup</label><select id="p4_2" class="p4-input" onchange="hitungStatusP4()"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
-        <button id="btn_next_p4" class="btn-next" onclick="nextStep(5)">LANJUT KE PILAR 5 →</button>
+        <div class="question-item"><label>1. Tidak Sampah Berserakan</label><select id="p4_1" class="p4-input" onchange="hitungStatusP4(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+        <div class="input-box"><label>2. Tempat Sampah Tertutup</label><select id="p4_2" class="p4-input" onchange="hitungStatusP4(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+        <div class="nav-buttons">
+          <button class="btn-back" onclick="nextStep(3)">← KEMBALI</button>
+          <button id="btn_next_p4" class="btn-next" onclick="nextStep(5)">LANJUT KE PILAR 5 →</button>
+        </div>
       </div>
 
-      <!-- PILAR 5 -->
       <div class="pilar-section" id="section_p5">
         <label><strong>PILAR 5: PENGELOLAAN LIMBAH CAIR</strong></label>
         <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
-        <div class="question-item"><label>1. SPAL Tertutup</label><select id="p5_1" class="p5-input" onchange="hitungStatusP5()"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
-        <button class="btn-save" onclick="showAnalisa()">🔍 LIHAT HASIL ANALISA</button>
+        <div class="question-item"><label>1. SPAL Tertutup</label><select id="p5_1" class="p5-input" onchange="hitungStatusP5(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+        
+        <div class="summary-box">
+            <div class="summary-item"><span>P1: Stop BABS</span><span id="sum_p1">-</span></div>
+            <div class="summary-item"><span>P2: CTPS</span><span id="sum_p2">-</span></div>
+            <div class="summary-item"><span>P3: PAMMRT</span><span id="sum_p3">-</span></div>
+            <div class="summary-item"><span>P4: Sampah</span><span id="sum_p4">-</span></div>
+            <div class="summary-item"><span>P5: Limbah</span><span id="sum_p5">-</span></div>
+        </div>
+
+        <div class="nav-buttons">
+          <button class="btn-back" onclick="nextStep(4)">← KEMBALI</button>
+          <button class="btn-save" onclick="showAnalisa()" style="flex:2; margin:0;">📊 LIHAT PRATINJAU DATA</button>
+        </div>
       </div>
 
-      <button id="btn_excel_main" class="btn-excel" onclick="exportToExcel()">📊 UNDUH EXCEL (PRATINJAU)</button>
+      <button id="btn_excel_main" class="btn-excel" onclick="showAnalisa()">📊 PRATINJAU TABEL EXCEL</button>
     </div>
   </div>
 
   <script>
     let pilar1Result = "", pilar2Result = "", pilar3Result = "", pilar4Result = "", pilar5Result = "";
+    let isKKLocked = false;
+
+    window.onload = function() { loadDraft(); };
+
+    function saveDraft() {
+        const data = getData();
+        localStorage.setItem('stbm_draft', JSON.stringify(data));
+    }
+
+    function loadDraft() {
+        const draft = localStorage.getItem('stbm_draft');
+        if (draft) {
+            const d = JSON.parse(draft);
+            document.getElementById('desa').value = d.Desa || "";
+            document.getElementById('kecamatan').value = d.Kecamatan || "SAMPANAHAN";
+            document.getElementById('tanggal').value = d.Tanggal || "";
+            document.getElementById('petugas').value = d.Petugas || "";
+            document.getElementById('no_kk').value = d.No_KK || "";
+            document.getElementById('nama_kk').value = d.Nama_KK || "";
+            document.getElementById('jml_jiwa').value = d.Jml_Jiwa || "";
+            document.getElementById('jml_menetap').value = d.Jml_Menetap || "";
+            
+            for(let i=1; i<=5; i++) {
+                const inputs = document.querySelectorAll(`.p${i}-input`);
+                inputs.forEach(input => {
+                    if(d[`P${i}_Raw`]) {
+                        const val = d[`P${i}_Raw`][input.id];
+                        if(val) input.value = val;
+                    }
+                });
+            }
+            hitungStatusP1(); hitungStatusP2(); hitungStatusP3(); hitungStatusP4(); hitungStatusP5();
+        }
+    }
+
+    // Fungsi toggle buka tutup kartu
+    function toggleCard(cardId) {
+      if (!isKKLocked) return; // Jangan izinkan toggle manual jika data belum pernah di-lock
+      const card = document.getElementById(cardId);
+      card.classList.toggle('card-collapsed');
+    }
 
     function lockKK() {
       const inputs = document.querySelectorAll('.kk-input');
+      const noKK = document.getElementById('no_kk').value;
+      const jiwa = parseInt(document.getElementById('jml_jiwa').value);
+      const menetap = parseInt(document.getElementById('jml_menetap').value);
+
       let valid = true;
       inputs.forEach(i => { if(!i.value) valid = false; });
       if(!valid) { alert("Lengkapi semua Identitas KK dan Lokasi!"); return; }
+      if(noKK.length !== 16) { alert("Nomor KK harus tepat 16 digit!"); return; }
+      if(menetap > jiwa) { alert("Jumlah menetap tidak boleh lebih besar dari jumlah jiwa!"); return; }
 
       inputs.forEach(i => {
         if(i.tagName === "SELECT") i.disabled = true;
         else i.readOnly = true;
       });
+
+      // Update state UI
+      isKKLocked = true;
       document.getElementById('btn_save_kk').style.display = 'none';
       document.getElementById('btn_edit_kk').style.display = 'block';
       document.getElementById('kuis_container').style.display = 'block';
+      document.getElementById('pilarProgress').style.display = 'block';
+      
+      // Menutup form lokasi & identitas otomatis
+      document.getElementById('card_lokasi').classList.add('card-collapsed');
+      document.getElementById('card_identitas').classList.add('card-collapsed');
+      document.getElementById('badge_lokasi').style.display = 'inline-block';
+      document.getElementById('badge_identitas').style.display = 'inline-block';
+
+      updateProgress(1);
     }
 
     function unlockKK() {
@@ -339,13 +510,30 @@
         if(i.tagName === "SELECT") i.disabled = false;
         else i.readOnly = false;
       });
+
+      isKKLocked = false;
       document.getElementById('btn_save_kk').style.display = 'block';
       document.getElementById('btn_edit_kk').style.display = 'none';
+      
+      // Membuka form identitas agar bisa diedit
+      document.getElementById('card_lokasi').classList.remove('card-collapsed');
+      document.getElementById('card_identitas').classList.remove('card-collapsed');
+      document.getElementById('badge_lokasi').style.display = 'none';
+      document.getElementById('badge_identitas').style.display = 'none';
+    }
+
+    function updateProgress(step) {
+        const fill = document.getElementById('progress_fill');
+        const percent = (step / 5) * 100;
+        fill.style.width = percent + '%';
+        document.getElementById('pilar_title').innerText = `📋 Evaluasi STBM (Step ${step} of 5)`;
     }
 
     function nextStep(step) {
       document.querySelectorAll('.pilar-section').forEach(sec => sec.classList.remove('active'));
       document.getElementById('section_p' + step).classList.add('active');
+      updateProgress(step);
+      window.scrollTo(0,0);
     }
 
     function checkPilarComplete(className, btnId) {
@@ -354,7 +542,6 @@
       inputs.forEach(input => { if (input.value === "") complete = false; });
       const btn = document.getElementById(btnId);
       if (btn) btn.style.display = complete ? "block" : "none";
-      
       checkAllComplete();
     }
 
@@ -364,12 +551,7 @@
         const p3 = Array.from(document.querySelectorAll('.p3-input')).every(i => i.value !== "");
         const p4 = Array.from(document.querySelectorAll('.p4-input')).every(i => i.value !== "");
         const p5 = document.getElementById('p5_1').value !== "";
-        
-        if(p1 && p2 && p3 && p4 && p5) {
-            document.getElementById('btn_excel_main').style.display = 'flex';
-        } else {
-            document.getElementById('btn_excel_main').style.display = 'none';
-        }
+        document.getElementById('btn_excel_main').style.display = (p1 && p2 && p3 && p4 && p5) ? 'flex' : 'none';
     }
 
     function hitungStatusP1() {
@@ -379,12 +561,12 @@
       const q4 = document.getElementById('p1_4').value; 
       checkPilarComplete('p1-input', 'btn_next_p1');
       if (!q1 || !q2 || !q3 || !q4) return;
-      
       if (q1 === "T" || q3 === "D") pilar1Result = "OD TERTUTUP";
       else if (q1 === "Y" && q2 === "T") pilar1Result = "SHARING";
       else if (q1 === "Y" && q2 === "Y" && q4 === "Y" && q3 === "A") pilar1Result = "AMAN";
       else if (q1 === "Y" && q2 === "Y" && q4 === "Y" && q3 === "B") pilar1Result = "LAYAK";
       else pilar1Result = "BELUM LAYAK";
+      document.getElementById('sum_p1').innerText = pilar1Result;
     }
 
     function hitungStatusP2() {
@@ -394,13 +576,15 @@
       checkPilarComplete('p2-input', 'btn_next_p2');
       if (!q1 || !q2 || !q3) return;
       pilar2Result = (q1 === "Y" && q2 === "Y" && q3 === "Y") ? "CTPS" : "TIDAK CTPS";
+      document.getElementById('sum_p2').innerText = pilar2Result;
     }
 
     function hitungStatusP3() {
       const vals = Array.from(document.querySelectorAll('.p3-input')).map(i => i.value);
       checkPilarComplete('p3-input', 'btn_next_p3');
       if (vals.includes("")) return;
-      pilar3Result = vals.every(v => v === "Ya") ? "PAMMRT" : "TIDAK PAMMRT";
+      pilar3Result = vals.every(v => v === "Y") ? "PAMMRT" : "TIDAK PAMMRT";
+      document.getElementById('sum_p3').innerText = pilar3Result;
     }
 
     function hitungStatusP4() {
@@ -408,6 +592,7 @@
       checkPilarComplete('p4-input', 'btn_next_p4');
       if (vals.includes("")) return;
       pilar4Result = vals.every(v => v === "Y") ? "PSRT" : "TIDAK PSRT";
+      document.getElementById('sum_p4').innerText = pilar4Result;
     }
 
     function hitungStatusP5() {
@@ -415,52 +600,53 @@
       checkAllComplete();
       if (!q) return;
       pilar5Result = (q === "Y") ? "PLCRT" : "TIDAK PLCRT";
+      document.getElementById('sum_p5').innerText = pilar5Result;
+    }
+
+    function generatePreview(data) {
+      const headers = ["Tanggal", "Nama KK", "No KK", "P1 (Jamban)", "P2 (CTPS)", "P3 (Minum)", "P4 (Sampah)", "P5 (Limbah)"];
+      const row = [data.Tanggal, data.Nama_KK, data.No_KK, data.Status_P1, data.Status_P2, data.Status_P3, data.Status_P4, data.Status_P5];
+      
+      let headHtml = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+      let bodyHtml = "<tr>" + row.map((r, i) => {
+          let cls = "";
+          if(i > 2) cls = `style="color: ${r.includes('TIDAK') || r.includes('OD') || r.includes('BELUM') ? '#ef4444' : '#10b981'}; font-weight: bold;"`;
+          return `<td ${cls}>${r}</td>`;
+      }).join("") + "</tr>";
+      
+      document.getElementById('preview_head').innerHTML = headHtml;
+      document.getElementById('preview_body').innerHTML = bodyHtml;
     }
 
     function showAnalisa() {
-      const name = document.getElementById('nama_kk').value || "Keluarga";
-      document.getElementById('res_nama_kk').innerText = "Data Kepala Keluarga: " + name;
+      const data = getData();
+      const name = data.Nama_KK || "Keluarga";
+      document.getElementById('res_nama_kk').innerText = "Data: " + name;
       
-      const results = [
-        { title: "Pilar 1 (Jamban)", val: pilar1Result, class: getBtnClass(pilar1Result) },
-        { title: "Pilar 2 (CTPS)", val: pilar2Result, class: getBtnClass(pilar2Result) },
-        { title: "Pilar 3 (Minum)", val: pilar3Result, class: getBtnClass(pilar3Result) },
-        { title: "Pilar 4 (Sampah)", val: pilar4Result, class: getBtnClass(pilar4Result) },
-        { title: "Pilar 5 (Limbah)", val: pilar5Result, class: getBtnClass(pilar5Result) }
-      ];
-
-      let html = "";
-      results.forEach(r => {
-        html += `<div class="result-row"><span>${r.title}</span><span class="status-val ${r.class}">${r.val || 'Belum Diisi'}</span></div>`;
-      });
-      document.getElementById('resultList').innerHTML = html;
+      generatePreview(data);
 
       let advice = "<strong>💡 Saran & Motivasi:</strong><br>";
-      const score = results.filter(r => ["AMAN", "LAYAK", "CTPS", "PAMMRT", "PSRT", "PLCRT"].includes(r.val)).length;
+      const results = [pilar1Result, pilar2Result, pilar3Result, pilar4Result, pilar5Result];
+      const score = results.filter(r => ["AMAN", "LAYAK", "CTPS", "PAMMRT", "PSRT", "PLCRT"].includes(r)).length;
       
       if (score === 5) {
-        advice += "Luar biasa! Keluarga ini sudah menjalankan 5 Pilar STBM dengan sempurna. Pertahankan pola hidup sehat ini untuk mencegah stunting dan penyakit menular!";
+        advice += "Luar biasa! Keluarga ini sudah menjalankan 5 Pilar STBM dengan sempurna.";
       } else {
-        advice += "Ada beberapa hal yang perlu ditingkatkan. ";
-        if (pilar1Result === "OD TERTUTUP" || pilar1Result === "BELUM LAYAK") advice += "Segera perbaiki akses jamban agar lebih sehat dan aman. ";
-        if (pilar2Result === "TIDAK CTPS") advice += "Biasakan cuci tangan pakai sabun di air mengalir terutama sebelum makan. ";
-        advice += "Semangat! Perubahan kecil hari ini adalah investasi kesehatan masa depan keluarga.";
+        advice += "Ada beberapa hal yang perlu ditingkatkan agar tercapai lingkungan sehat.";
       }
       document.getElementById('adviceContent').innerHTML = advice;
       document.getElementById('modalResult').style.display = 'flex';
     }
 
-    function getBtnClass(val) {
-      if (!val) return "bg-belum";
-      if (["AMAN", "CTPS", "PAMMRT", "PSRT", "PLCRT"].includes(val)) return "bg-success";
-      if (val === "LAYAK") return "bg-primary";
-      if (val === "SHARING") return "bg-warning";
-      return "bg-danger";
-    }
-
     function closeModal() { document.getElementById('modalResult').style.display = 'none'; }
 
     function getData() {
+      const getRaw = (p) => {
+          let obj = {};
+          document.querySelectorAll(`.p${p}-input`).forEach(i => obj[i.id] = i.value);
+          return obj;
+      };
+
       return {
         Puskesmas: document.getElementById('puskesmas').value,
         Desa: document.getElementById('desa').value,
@@ -471,30 +657,54 @@
         Nama_KK: document.getElementById('nama_kk').value,
         Jml_Jiwa: document.getElementById('jml_jiwa').value,
         Jml_Menetap: document.getElementById('jml_menetap').value,
-        Status_P1: pilar1Result, Status_P2: pilar2Result, Status_P3: pilar3Result, Status_P4: pilar4Result, Status_P5: pilar5Result
+        Status_P1: pilar1Result, Status_P2: pilar2Result, Status_P3: pilar3Result, Status_P4: pilar4Result, Status_P5: pilar5Result,
+        P1_Raw: getRaw(1), P2_Raw: getRaw(2), P3_Raw: getRaw(3), P4_Raw: getRaw(4), P5_Raw: getRaw(5)
       };
     }
 
     function simpanData() {
+      if(!confirm("Simpan data ini secara permanen ke database?")) return;
       const data = getData();
-      if (!data.No_KK || !data.Nama_KK || !data.Desa) { alert("Data KK belum lengkap!"); return; }
       if (typeof google !== 'undefined' && google.script) {
         google.script.run.withSuccessHandler(res => {
-            alert("Berhasil: " + res);
+            alert("Berhasil disimpan!");
+            localStorage.removeItem('stbm_draft');
             location.reload();
-        }).withFailureHandler(err => alert("Gagal: " + err.message)).processForm(data); 
+        }).processForm(data); 
       } else {
-        alert("Simulasi Berhasil: Data " + data.Nama_KK + " tersimpan.");
+        alert("Simulasi Berhasil: Data tersimpan.");
+        localStorage.removeItem('stbm_draft');
         closeModal();
       }
     }
 
     function exportToExcel() {
-      const data = getData();
-      const ws = XLSX.utils.json_to_sheet([data]);
+      const d = getData();
+      const excelData = [{
+        "TANGGAL SURVEY": d.Tanggal,
+        "NAMA KEPALA KELUARGA": d.Nama_KK,
+        "NOMOR KK": d.No_KK,
+        "DESA": d.Desa,
+        "KECAMATAN": d.Kecamatan,
+        "PETUGAS": d.Petugas,
+        "JML JIWA": d.Jml_Jiwa,
+        "HASIL PILAR 1": d.Status_P1,
+        "HASIL PILAR 2": d.Status_P2,
+        "HASIL PILAR 3": d.Status_P3,
+        "HASIL PILAR 4": d.Status_P4,
+        "HASIL PILAR 5": d.Status_P5
+      }];
+
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      const wscols = [
+        {wch:15}, {wch:25}, {wch:20}, {wch:20}, {wch:15}, {wch:20}, {wch:10}, 
+        {wch:15}, {wch:15}, {wch:15}, {wch:15}, {wch:15}
+      ];
+      ws['!cols'] = wscols;
+
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Data_STBM");
-      XLSX.writeFile(wb, "STBM_" + (data.Nama_KK || "Export") + ".xlsx");
+      XLSX.utils.book_append_sheet(wb, ws, "Laporan_STBM");
+      XLSX.writeFile(wb, `MONITORING_STBM_${d.Nama_KK}.xlsx`);
     }
   </script>
 </body>
