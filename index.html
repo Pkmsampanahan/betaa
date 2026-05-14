@@ -2,22 +2,26 @@
 <html>
 <head>
   <base target="_top">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root {
-      --primary: #0ea5e9;
-      --bg: #0f172a;
-      --glass: rgba(30, 41, 59, 0.7);
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --excel: #16a34a;
+      --primary: #1d4ed8;       /* Biru Royal yang lebih kuat untuk siang hari */
+      --bg: #f1f5f9;            /* Abu-abu sangat muda agar tidak silau */
+      --card-bg: #ffffff;       /* Card putih bersih */
+      --text-main: #0f172a;     /* Teks hampir hitam (kontras tinggi) */
+      --text-muted: #475569;    /* Teks pendukung abu-abu gelap */
+      --success: #15803d;       /* Hijau lebih gelap */
+      --warning: #a16207;       /* Kuning/Emas gelap */
+      --danger: #b91c1c;        /* Merah gelap */
+      --excel: #166534;
     }
+
     body { 
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
       background-color: var(--bg); 
-      color: #f8fafc;
+      color: var(--text-main); 
       margin: 0; padding: 15px;
       padding-bottom: 80px; /* Space for fixed menu */
     }
@@ -25,14 +29,14 @@
     /* Fixed Navigation Menu */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; width: 100%;
-      background: #1e293b; border-top: 1px solid #334155;
+      background: #ffffff; border-top: 1px solid #e2e8f0;
       display: flex; justify-content: space-around; padding: 10px 0;
       z-index: 1000;
     }
     .nav-item {
-      color: #94a3b8; text-decoration: none; font-size: 0.8rem;
+      color: #64748b; text-decoration: none; font-size: 0.75rem;
       display: flex; flex-direction: column; align-items: center; gap: 5px;
-      cursor: pointer;
+      cursor: pointer; flex: 1; text-align: center;
     }
     .nav-item.active { color: var(--primary); font-weight: bold; }
     .nav-icon { font-size: 1.2rem; }
@@ -43,14 +47,14 @@
       position: sticky;
       top: 0;
       z-index: 1001;
-      background: var(--warning);
-      color: #000;
+      background: #fef08a; /* Soft yellow for light mode visibility */
+      color: #854d0e;
       text-align: center;
       padding: 8px;
       font-size: 0.85rem;
       font-weight: bold;
       border-radius: 0 0 12px 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
       margin-bottom: 10px;
     }
 
@@ -59,24 +63,25 @@
 
     /* Progress Bar Styles */
     .progress-container {
-      width: 100%; height: 8px; background: rgba(255,255,255,0.1);
+      width: 100%; height: 8px; background: #e2e8f0;
       border-radius: 10px; margin-bottom: 20px; overflow: hidden;
       display: none;
     }
     #progress_fill {
       height: 100%; width: 0%; background: var(--primary);
-      transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
+      transition: width 0.3s ease;
     }
 
+    /* Card Styles - Outdoor High Contrast */
     .card {
-      background: var(--glass);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--card-bg);
+      border: 1px solid #e2e8f0;
       border-radius: 16px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
       transition: all 0.3s ease;
+      color: var(--text-main);
     }
     
     .card-collapsed { padding: 10px 20px; }
@@ -86,26 +91,48 @@
       cursor: pointer;
     }
     .badge-info {
-      font-size: 0.75rem; background: var(--primary);
+      font-size: 0.75rem; background: var(--primary); color: white;
       padding: 2px 8px; border-radius: 10px; display: none;
     }
 
-    h2 { color: var(--primary); font-size: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-top: 0; }
+    h2 { color: var(--primary); font-size: 1.2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-top: 0; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .input-box { margin-bottom: 15px; }
-    label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: #94a3b8; }
+    label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted); font-weight: 600; }
+    
     input, select, textarea {
       width: 100%; padding: 10px;
-      background: rgba(15, 23, 42, 0.5);
-      border: 1px solid #334155;
-      border-radius: 8px; color: white;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px; color: var(--text-main);
       box-sizing: border-box; font-size: 0.9rem;
     }
-    input:focus, select:focus { outline: none; border-color: var(--primary); }
-    input[readonly], select[disabled] { background: rgba(255, 255, 255, 0.05); color: #94a3b8; cursor: not-allowed; }
+    input:focus, select:focus { outline: none; border-color: var(--primary); background: #f8fafc; }
+    input[readonly], select[disabled] { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
     
+    .checkbox-group {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+      border: 1px dashed #cbd5e1;
+      display: none;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .checkbox-item:last-child { margin-bottom: 0; }
+    .checkbox-item input[type="checkbox"] {
+      width: 18px; height: 18px; margin: 0; cursor: pointer;
+    }
+    .checkbox-item span { font-size: 0.85rem; line-height: 1.4; color: var(--text-main); }
+
     .pilar-section {
-      background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px;
+      background: #f8fafc; padding: 15px; border-radius: 8px;
       margin-top: 10px; border-left: 4px solid var(--primary); display: none;
     }
     .pilar-section.active { display: block; animation: fadeIn 0.5s ease; }
@@ -113,7 +140,7 @@
     
     .nav-buttons { display: flex; gap: 10px; margin-top: 15px; }
     .btn-back {
-      background: #334155; color: white; border: none; flex: 1;
+      background: #64748b; color: white; border: none; flex: 1;
       padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer;
     }
 
@@ -123,7 +150,7 @@
       padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer;
       margin-top: 10px; transition: background 0.3s;
     }
-    .btn-save:hover { background: #0284c7; }
+    .btn-save:hover { background: #1e40af; }
 
     .btn-kk { padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
     .btn-save-kk { background: var(--success); color: white; }
@@ -136,35 +163,30 @@
 
     .summary-box {
       margin-top: 15px; padding: 12px; border-radius: 8px;
-      background: rgba(255,255,255,0.05); font-size: 0.85rem;
+      background: #f1f5f9; font-size: 0.85rem; border: 1px solid #e2e8f0;
     }
-    .summary-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .summary-item { display: flex; justify-content: space-between; margin-bottom: 5px; color: var(--text-main); }
 
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
       display: none; align-items: center; justify-content: center;
       z-index: 9999; padding: 20px;
     }
     .modal-content {
-      background: #1e293b; width: 100%; max-width: 600px;
-      border-radius: 24px; border: 1px solid var(--primary);
+      background: #ffffff; width: 100%; max-width: 600px;
+      border-radius: 24px; border: 1px solid #e2e8f0;
       padding: 25px; max-height: 90vh; overflow-y: auto;
-      box-shadow: 0 0 50px rgba(14, 165, 233, 0.3);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--text-main);
     }
     @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     
-    .table-container { overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #334155; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.75rem; background: #0f172a; }
-    th { background: #1e293b; color: var(--primary); text-align: left; padding: 10px; border-bottom: 1px solid #334155; white-space: nowrap; }
-    td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
-
-    .advice-box {
-      margin-top: 20px; padding: 15px; border-radius: 12px;
-      background: rgba(14, 165, 233, 0.1); border: 1px solid var(--primary);
-      font-size: 0.9rem; line-height: 1.5; color: #e2e8f0;
-    }
+    .table-container { overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.75rem; background: #ffffff; }
+    th { background: #f8fafc; color: var(--primary); text-align: left; padding: 10px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+    td { padding: 10px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; color: var(--text-main); }
 
     .btn-excel {
       background: var(--excel); color: white; border: none; width: 100%;
@@ -176,31 +198,57 @@
 
     .loading-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.8); z-index: 10000;
+      background: rgba(255, 255, 255, 0.8); z-index: 10000;
       display: none; flex-direction: column; align-items: center; justify-content: center;
     }
     .spinner {
-      width: 40px; height: 40px; border: 4px solid rgba(14, 165, 233, 0.1);
+      width: 40px; height: 40px; border: 4px solid #e2e8f0;
       border-left-color: var(--primary); border-radius: 50%;
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Rekapan Page Custom Styles */
     .rekap-item {
-      background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; margin-bottom: 15px;
-      border: 1px solid #334155; position: relative;
+      background: #ffffff; border-radius: 12px; padding: 15px; margin-bottom: 15px;
+      border: 1px solid #e2e8f0; position: relative;
     }
-    .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 5px; font-weight: bold; }
-    .status-pending { background: var(--warning); color: #000; }
     .rekap-nama { font-weight: bold; color: var(--primary); font-size: 1rem; margin-top: 5px; }
-    .rekap-meta { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+    .rekap-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
     .rekap-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
     .btn-rekap { border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 4px; }
     .btn-rekap-send { background: var(--success); color: white; }
-    .btn-rekap-view { background: #334155; color: white; }
-    .btn-rekap-edit { background: var(--warning); color: black; }
+    .btn-rekap-view { background: #64748b; color: white; }
+    .btn-rekap-edit { background: var(--warning); color: white; }
     .btn-rekap-delete { background: var(--danger); color: white; }
+
+    /* Detail Pilar Content Style */
+    .edu-pilar-card {
+      margin-bottom: 25px;
+      border-left: 5px solid var(--primary);
+      padding-left: 15px;
+    }
+    .edu-pilar-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    .edu-content {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--text-main);
+    }
+    .edu-list {
+      margin: 10px 0;
+      padding-left: 15px;
+    }
+    .edu-list-item {
+      margin-bottom: 8px;
+    }
+    .edu-tag {
+      font-weight: bold;
+      color: #854d0e; /* Darker brown for emphasis */
+    }
   </style>
 </head>
 <body>
@@ -214,7 +262,6 @@
     <p style="margin-top: 15px; font-size: 0.9rem; color: var(--primary);">Memproses ke Database...</p>
   </div>
 
-  <!-- NAVIGATION -->
   <nav class="bottom-nav">
     <div class="nav-item active" id="nav_form" onclick="switchPage('form_page', this)">
       <span class="nav-icon">📝</span>
@@ -224,9 +271,12 @@
       <span class="nav-icon">📊</span>
       <span>Rekapan</span>
     </div>
+    <div class="nav-item" id="nav_edu" onclick="switchPage('edu_page', this)">
+      <span class="nav-icon">💡</span>
+      <span>Edukasi Pilar</span>
+    </div>
   </nav>
 
-  <!-- PAGE 1: FORM SURVEY -->
   <div id="form_page" class="page-section active">
     <div class="progress-container" id="pilarProgress">
       <div id="progress_fill"></div>
@@ -285,10 +335,10 @@
         <h2 id="pilar_title">📋 Evaluasi 5 Pilar STBM</h2>
         
         <div class="pilar-section active" id="section_p1">
-          <label><strong>PILAR 1: STOP BABS</strong></label>
-          <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
+          <label><strong>Pilar 1: Stop Buang Air Besar Sembarangan</strong></label>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;">
           <div class="question-item">
-            <label>1. Buang air besar di jamban sehat</label>
+            <label>1. Buang air besar di jamban sehat.</label>
             <select id="p1_1" class="p1-input" onchange="hitungStatusP1(); saveDraft();">
               <option value="" disabled selected>Pilih</option>
               <option value="Y">Ya</option>
@@ -296,7 +346,7 @@
             </select>
           </div>
           <div class="question-item">
-            <label>2. Jamban milik sendiri</label>
+            <label>2. Jamban milik sendiri.</label>
             <select id="p1_2" class="p1-input" onchange="hitungStatusP1(); saveDraft();">
               <option value="" disabled selected>Pilih</option>
               <option value="Y">Ya</option>
@@ -304,17 +354,17 @@
             </select>
           </div>
           <div class="question-item">
-            <label>3. Bangunan Bawah (Pilih salah satu):</label>
+            <label>3. Bangunan Bawah:</label>
             <select id="p1_3" class="p1-input" onchange="hitungStatusP1(); saveDraft();">
               <option value="" disabled selected>Pilih Opsi</option>
-              <option value="A">A. Tangki septik disedot 3-5th / SPAL</option>
-              <option value="B">B. Tidak pernah disedot > 5th / Baru</option>
-              <option value="C">C. Cubluk / Lubang Tanah</option>
-              <option value="D">D. Langsung ke drainase/sungai/kolam</option>
+              <option value="A">a. Tangki septik disedot setidaknya sekali dalam 3-5 tahun terakhir, atau disalurkan ke SPAL.</option>
+              <option value="B">b. Tangki septik tidak pernah disedot atau disedot > 5 tahun terakhir / rumah baru.</option>
+              <option value="C">c. Cubluk / lubang tanah.</option>
+              <option value="D">d. Dibuang langsung ke drainase/sungai/kolam/laut/lapangan.</option>
             </select>
           </div>
           <div class="question-item">
-            <label>4. Kloset leher angsa</label>
+            <label>4. Kloset leher angsa.</label>
             <select id="p1_4" class="p1-input" onchange="hitungStatusP1(); saveDraft();">
               <option value="" disabled selected>Pilih</option>
               <option value="Y">Ya</option>
@@ -327,10 +377,10 @@
         </div>
 
         <div class="pilar-section" id="section_p2">
-          <label><strong>PILAR 2: CUCI TANGAN PAKAI SABUN</strong></label>
-          <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
+          <label><strong>Pilar 2: Cuci Tangan Pakai Sabun (CTPS)</strong></label>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;">
           <div class="question-item">
-            <label>1. Memiliki sarana CTPS (Air Mengalir + Sabun)</label>
+            <label>1. Memiliki sarana CTPS dengan air mengalir dilengkapi dengan sabun yang lokasinya mudah dijangkau.</label>
             <select id="p2_1" class="p2-input" onchange="hitungStatusP2(); saveDraft();">
               <option value="" disabled selected>Pilih</option>
               <option value="Y">Ya</option>
@@ -338,7 +388,7 @@
             </select>
           </div>
           <div class="question-item">
-            <label>2. Mampu mempraktikkan cara CTPS</label>
+            <label>2. Mampu mempraktikkan cara cuci tangan pakai sabun.</label>
             <select id="p2_2" class="p2-input" onchange="hitungStatusP2(); saveDraft();">
               <option value="" disabled selected>Pilih</option>
               <option value="Y">Ya</option>
@@ -346,12 +396,31 @@
             </select>
           </div>
           <div class="question-item">
-            <label>3. Mengetahui waktu-waktu kritis CTPS (Min. 3 waktu):</label>
-            <select id="p2_3" class="p2-input" onchange="hitungStatusP2(); saveDraft();">
+            <label>3. Mengetahui waktu-waktu kritis CTPS (Minimal menjawab 3):</label>
+            <select id="p2_3" class="p2-input" onchange="handleP2_3(this); hitungStatusP2(); saveDraft();">
               <option value="" disabled selected>Pilih</option>
-              <option value="Y">Tahu (Min 3)</option>
-              <option value="T">Tidak Tahu</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
             </select>
+            
+            <div id="p2_waktu_kritis" class="checkbox-group">
+                <label class="checkbox-item">
+                    <input type="checkbox" class="p2-checkbox" value="sebelum_makan" onchange="hitungStatusP2(); saveDraft();">
+                    <span>a. Sebelum makan.</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" class="p2-checkbox" value="sebelum_mengolah" onchange="hitungStatusP2(); saveDraft();">
+                    <span>b. Sebelum mengolah dan menghidangkan makanan.</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" class="p2-checkbox" value="sebelum_menyusui" onchange="hitungStatusP2(); saveDraft();">
+                    <span>c. Sebelum menyusui anak, sebelum memberi makan bayi/balita.</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" class="p2-checkbox" value="setelah_bab" onchange="hitungStatusP2(); saveDraft();">
+                    <span>d. Setelah BAB/buang air kecil.</span>
+                </label>
+            </div>
           </div>
           <div class="nav-buttons">
             <button class="btn-back" onclick="nextStep(1)">← KEMBALI</button>
@@ -360,12 +429,63 @@
         </div>
 
         <div class="pilar-section" id="section_p3">
-          <label><strong>PILAR 3: PAMMRT</strong></label>
-          <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
-          <div class="question-item"><label>1a. Pengolahan Air Minum</label><select id="p3_1a" class="p3-input" onchange="hitungStatusP3(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
-          <div class="question-item"><label>1b. Pengolahan Air Keruh</label><select id="p3_1b" class="p3-input" onchange="hitungStatusP3(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
-          <div class="question-item"><label>2. Wadah Tertutup</label><select id="p3_2" class="p3-input" onchange="hitungStatusP3(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
-          <div class="question-item"><label>3. Peralatan Bersih</label><select id="p3_3a" class="p3-input" onchange="hitungStatusP3(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+          <label><strong>Pilar 3: PAMMRT</strong></label>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;">
+          
+          <p style="font-size: 0.85rem; color: var(--primary); margin-bottom: 5px; font-weight: bold;">1. Mengonsumsi air minum :</p>
+          <div class="question-item" style="margin-left: 10px;">
+            <label>a. Yang melalui proses pengolahan (misal: merebus, klorin cair/padat, UV, SODIS, filtrasi, keramik filter, RO).</label>
+            <select id="p3_1a" class="p3-input" onchange="hitungStatusP3(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+          <div class="question-item" style="margin-left: 10px;">
+            <label>b. Jika air baku keruh dilakukan pengolahan (pengendapan atau penyaringan).</label>
+            <select id="p3_1b" class="p3-input" onchange="hitungStatusP3(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+
+          <div class="question-item">
+            <label>2. Menyimpan air minum di dalam wadah yang tertutup rapat, kuat, terbuat dari bahan stainless steel, keramik, kaca, atau plastik bertanda gelas & garpu, serta diambil dengan cara yang aman (tidak tersentuh tangan atau mulut).</label>
+            <select id="p3_2" class="p3-input" onchange="hitungStatusP3(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--primary); margin-bottom: 5px; font-weight: bold;">3. Menyimpan peralatan pengolahan pangan dengan aman dan menjaga kebersihannya :</p>
+          <div class="question-item" style="margin-left: 10px;">
+            <label>a. Peralatan makan (piring, sendok, dll) tidak kotor, tidak berdebu, dan terlindungi dari tikus, kecoa, dll.</label>
+            <select id="p3_3a" class="p3-input" onchange="hitungStatusP3(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+          <div class="question-item" style="margin-left: 10px;">
+            <label>b. Peralatan masak (panci, penggorengan, dll) tidak kotor, tidak berdebu, dan disimpan di tempat bersih.</label>
+            <select id="p3_3b" class="p3-input" onchange="hitungStatusP3(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+
+          <div class="question-item">
+            <label>4. Menutup makanan dan minuman yang disajikan dengan baik dan benar.</label>
+            <select id="p3_4" class="p3-input" onchange="hitungStatusP3(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+
           <div class="nav-buttons">
             <button class="btn-back" onclick="nextStep(2)">← KEMBALI</button>
             <button id="btn_next_p3" class="btn-next" onclick="nextStep(4)">LANJUT KE PILAR 4 →</button>
@@ -373,10 +493,40 @@
         </div>
 
         <div class="pilar-section" id="section_p4">
-          <label><strong>PILAR 4: PENGELOLAAN SAMPAH</strong></label>
-          <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
-          <div class="question-item"><label>1. Tidak Sampah Berserakan</label><select id="p4_1" class="p4-input" onchange="hitungStatusP4(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
-          <div class="input-box"><label>2. Tempat Sampah Tertutup</label><select id="p4_2" class="p4-input" onchange="hitungStatusP4(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+          <label><strong>Pilar 4: Pengamanan Sampah Rumah Tangga (PSRT)</strong></label>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;">
+          <div class="question-item">
+            <label>1. Tidak ada sampah berserakan di lingkungan sekitar rumah.</label>
+            <select id="p4_1" class="p4-input" onchange="hitungStatusP4(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+          <div class="question-item">
+            <label>2. Ada tempat sampah yang tertutup, kuat, dan mudah dibersihkan.</label>
+            <select id="p4_2" class="p4-input" onchange="hitungStatusP4(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+          <div class="question-item">
+            <label>3. Ada perlakuan aman (tidak dibakar, tidak dibuang ke sungai/drainase/tempat terbuka).</label>
+            <select id="p4_3" class="p4-input" onchange="hitungStatusP4(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+          <div class="question-item">
+            <label>4. Telah melakukan pemilahan sampah.</label>
+            <select id="p4_4" class="p4-input" onchange="hitungStatusP4(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
           <div class="nav-buttons">
             <button class="btn-back" onclick="nextStep(3)">← KEMBALI</button>
             <button id="btn_next_p4" class="btn-next" onclick="nextStep(5)">LANJUT KE PILAR 5 →</button>
@@ -384,61 +534,141 @@
         </div>
 
         <div class="pilar-section" id="section_p5">
-          <label><strong>PILAR 5: PENGELOLAAN LIMBAH CAIR</strong></label>
-          <hr style="border: 0; border-top: 1px solid #334155; margin: 10px 0;">
-          <div class="question-item"><label>1. SPAL Tertutup</label><select id="p5_1" class="p5-input" onchange="hitungStatusP5(); saveDraft();"><option value="" disabled selected>Pilih</option><option value="Y">Ya</option><option value="T">Tidak</option></select></div>
+          <label><strong>Pilar 5: Pengamanan Limbah Cair Rumah Tangga (PLCRT)</strong></label>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;">
+          <div class="question-item">
+            <label>1. Tidak terlihat genangan air di sekitar rumah karena limbah cair domestik.</label>
+            <select id="p5_1" class="p5-input" onchange="hitungStatusP5(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+          <div class="question-item">
+            <label>2. Ada saluran pembuangan limbah cair (non-kakus) yang kedap dan tertutup.</label>
+            <select id="p5_2" class="p5-input" onchange="hitungStatusP5(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
+          <div class="question-item">
+            <label>3. Terhubung dengan sumur resapan dan/atau sistem pengolahan limbah (IPAL/Sewerage).</label>
+            <select id="p5_3" class="p5-input" onchange="hitungStatusP5(); saveDraft();">
+              <option value="" disabled selected>Pilih</option>
+              <option value="Y">Ya</option>
+              <option value="T">Tidak</option>
+            </select>
+          </div>
           
           <div class="summary-box">
               <div class="summary-item"><span>P1: Stop BABS</span><span id="sum_p1">-</span></div>
               <div class="summary-item"><span>P2: CTPS</span><span id="sum_p2">-</span></div>
               <div class="summary-item"><span>P3: PAMMRT</span><span id="sum_p3">-</span></div>
-              <div class="summary-item"><span>P4: Sampah</span><span id="sum_p4">-</span></div>
-              <div class="summary-item"><span>P5: Limbah</span><span id="sum_p5">-</span></div>
+              <div class="summary-item"><span>P4: PSRT (Sampah)</span><span id="sum_p4">-</span></div>
+              <div class="summary-item"><span>P5: PLCRT (Limbah)</span><span id="sum_p5">-</span></div>
           </div>
 
           <div class="nav-buttons">
             <button class="btn-back" onclick="nextStep(4)">← KEMBALI</button>
-            <button class="btn-save" onclick="showAnalisa()" style="flex:2; margin:0;">📊 LIHAT PRATINJAU DATA</button>
+            <button id="btn_excel_main" class="btn-save" style="background: var(--success); flex:2; margin:0;" onclick="simpanData()">✅ SIMPAN DATA</button>
           </div>
         </div>
-        <button id="btn_excel_main" class="btn-excel" onclick="showAnalisa()">📊 PRATINJAU TABEL EXCEL</button>
       </div>
     </div>
   </div>
 
-  <!-- PAGE 2: REKAPAN & MANUAL SYNC -->
   <div id="rekap_page" class="page-section">
     <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;">
         <h2 style="margin: 0; border: none;">📊 Antrean Data Offline</h2>
         <button class="btn-rekap btn-rekap-send" style="margin: 0;" onclick="syncData()">🚀 KIRIM SEMUA</button>
       </div>
-      <p style="font-size: 0.8rem; color: #94a3b8;">Data yang tersimpan sementara karena kendala sinyal.</p>
-      <div id="rekap_list_container">
-        <!-- Rekapan Items will appear here -->
-      </div>
+      <div id="rekap_list_container"></div>
     </div>
   </div>
 
-  <!-- MODAL RESULT -->
+  <div id="edu_page" class="page-section">
+    <div class="card">
+      <h2>💡 Panduan Detail 5 Pilar STBM</h2>
+      
+      <div class="edu-pilar-card">
+        <div class="edu-pilar-title">1. Stop Buang Air Besar Sembarangan (Stop BABS)</div>
+        <div class="edu-content">
+          Memutus rantai penularan penyakit melalui tinja. Klasifikasi:
+          <div class="edu-list">
+            <div class="edu-list-item"><span class="edu-tag">Aman:</span> Menggunakan jamban dengan tangki septik yang disedot setidaknya sekali dalam 3–5 tahun.</div>
+            <div class="edu-list-item"><span class="edu-tag">Layak:</span> Jamban sendiri dengan tangki septik memadai, namun belum rutin disedot.</div>
+            <div class="edu-list-item"><span class="edu-tag">Sharing (Berbagi):</span> Fasilitas layak, tetapi digunakan bersama beberapa rumah tangga.</div>
+            <div class="edu-list-item"><span class="edu-tag">Belum Layak:</span> Pembuangan langsung ke lubang tanah tanpa dinding kedap atau ke sungai.</div>
+            <div class="edu-list-item"><span class="edu-tag">OD Tertutup:</span> BAB masih sembarangan, tetapi lubang ditutup/ditimbun.</div>
+            <div class="edu-list-item"><span class="edu-tag">OD Terbuka:</span> BAB langsung di area terbuka tanpa upaya penutupan.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="edu-pilar-card">
+        <div class="edu-pilar-title">2. Cuci Tangan Pakai Sabun (CTPS)</div>
+        <div class="edu-content">
+          Menilai kebiasaan cuci tangan pada waktu kritis.
+          <div class="edu-list">
+            <div class="edu-list-item"><span class="edu-tag">CTPS:</span> Memiliki sarana dengan air mengalir dan sabun, serta mempraktikkannya.</div>
+            <div class="edu-list-item"><span class="edu-tag">Tidak CTPS:</span> Tidak tersedia sarana memadai atau tidak ada kebiasaan pakai sabun.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="edu-pilar-card">
+        <div class="edu-pilar-title">3. Pengelolaan Air Minum dan Makanan Rumah Tangga (PAMMRT)</div>
+        <div class="edu-content">
+          Fokus pada keamanan konsumsi agar terhindar dari kuman.
+          <div class="edu-list">
+            <div class="edu-list-item"><span class="edu-tag">PAMMRT:</span> Mengolah air sebelum diminum dan menyimpan makanan dalam wadah tertutup.</div>
+            <div class="edu-list-item"><span class="edu-tag">Tidak PAMMRT:</span> Air tidak diolah benar atau penyimpanan makanan tidak higienis.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="edu-pilar-card">
+        <div class="edu-pilar-title">4. Pengamanan Sampah Rumah Tangga (PSRT)</div>
+        <div class="edu-content">
+          Pengelolaan sampah padat agar tidak menjadi sarang penyakit.
+          <div class="edu-list">
+            <div class="edu-list-item"><span class="edu-tag">PSRT:</span> Sampah dipilah, dibuang ke tempat tertutup, tidak dibakar/dibuang sembarangan.</div>
+            <div class="edu-list-item"><span class="edu-tag">Tidak PSRT:</span> Sampah menumpuk, dibuang ke sungai, atau dibakar.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="edu-pilar-card">
+        <div class="edu-pilar-title">5. Pengamanan Limbah Cair Rumah Tangga (PLCRT)</div>
+        <div class="edu-content">
+          Fokus pada pengelolaan limbah cair non-tinja.
+          <div class="edu-list">
+            <div class="edu-list-item"><span class="edu-tag">PLCRT:</span> Memiliki saluran pembuangan (SPAL) tertutup dan kedap, air tidak menggenang.</div>
+            <div class="edu-list-item"><span class="edu-tag">Tidak PLCRT:</span> Limbah dibuang ke tanah (becek) atau ke saluran terbuka.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modalResult">
     <div class="modal-content">
-      <div class="modal-header">
-        <h3>✨ Data Survey STBM</h3>
-        <p style="font-size: 0.8rem; color: #94a3b8;" id="res_nama_kk"></p>
-      </div>
+      <h3>✨ Pratinjau Tabel Excel</h3>
+      <p id="res_nama_kk" style="font-size: 0.8rem; color: var(--text-muted);"></p>
       <div class="table-container">
         <table>
           <thead id="preview_head"></thead>
           <tbody id="preview_body"></tbody>
         </table>
       </div>
-      <div class="advice-box" id="adviceContent"></div>
       <div class="nav-buttons">
-          <button class="btn-close" onclick="closeModal()">Tutup</button>
+          <button class="btn-close" onclick="closeModal()" style="padding: 10px; border-radius: 8px; border: none; cursor: pointer; background: #64748b; color: white;">Tutup</button>
           <button id="btn_modal_excel" class="btn-save" style="margin-top: 15px; background: var(--excel); flex: 2;" onclick="exportToExcel()">📥 UNDUH EXCEL</button>
       </div>
-      <button id="btn_modal_save" class="btn-save" style="background: var(--success);" onclick="simpanData()">✅ SIMPAN KE DATABASE</button>
+      <button id="btn_modal_save" class="btn-save" style="background: var(--success); display: none;" onclick="simpanData()">✅ SIMPAN KE DATABASE</button>
     </div>
   </div>
 
@@ -446,30 +676,23 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzNRUCsdXZYoOMLLVPny4dkaqjfoWFKqF2NqGjBxCtcwjwftP_2LoamPXJh0oywVgYG/exec";
     let pilar1Result = "", pilar2Result = "", pilar3Result = "", pilar4Result = "", pilar5Result = "";
     let isKKLocked = false;
-    let currentViewData = null; // Store data currently viewed in modal
+    let currentViewData = null;
 
-    // --- LOGIKA INDEXEDDB ---
+    // --- DB INDEXEDDB ---
     const dbName = "STBM_Offline_DB";
     let db;
     const dbRequest = indexedDB.open(dbName, 1);
-
     dbRequest.onupgradeneeded = (e) => {
       db = e.target.result;
       if (!db.objectStoreNames.contains("sync_queue")) {
         db.createObjectStore("sync_queue", { keyPath: "id", autoIncrement: true });
       }
     };
-
-    dbRequest.onsuccess = (e) => { 
-      db = e.target.result; 
-      updateQueueUI();
-      syncData(); 
-    };
+    dbRequest.onsuccess = (e) => { db = e.target.result; updateQueueUI(); syncData(); };
 
     window.onload = function() { loadDraft(); };
     window.addEventListener('online', () => { syncData(); });
 
-    // NAVIGATION SYSTEM
     function switchPage(pageId, element) {
       document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -478,219 +701,97 @@
       window.scrollTo(0,0);
     }
 
-    // REKAPAN LOGIC
     function refreshRekapan() {
       if (!db) return;
       const container = document.getElementById('rekap_list_container');
       container.innerHTML = '<p style="text-align: center; color: #64748b;">Membuka antrean...</p>';
-
       const transaction = db.transaction(["sync_queue"], "readonly");
       const store = transaction.objectStore("sync_queue");
       const getAll = store.getAll();
-
       getAll.onsuccess = () => {
         const items = getAll.result;
         if (items.length === 0) {
-          container.innerHTML = '<div style="text-align: center; padding: 40px 0;"><span style="font-size: 3rem;">🎉</span><p style="color: #94a3b8;">Tidak ada data tertunda. Semua sudah terkirim!</p></div>';
+          container.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 20px;">Antrean kosong.</p>';
           return;
         }
-
         container.innerHTML = "";
         items.forEach(item => {
           const div = document.createElement('div');
           div.className = "rekap-item";
           div.innerHTML = `
             <div>
-              <span class="status-badge status-pending">PENDING</span>
               <div class="rekap-nama">${item.Nama_KK}</div>
-              <div class="rekap-meta">KK: ${item.No_KK} | Desa: ${item.Desa}</div>
-              <div class="rekap-meta">Waktu Simpan: ${new Date(item.timestamp).toLocaleString('id-ID')}</div>
+              <div class="rekap-meta">${item.No_KK} | ${item.Desa}</div>
               <div class="rekap-actions">
-                <button class="btn-rekap btn-rekap-send" onclick="sendSingleQueue(${item.id})">🚀 Kirim</button>
-                <button class="btn-rekap btn-rekap-view" onclick="viewRekapData(${item.id})">🔍 Lihat</button>
+                <button class="btn-rekap btn-rekap-view" onclick="showRekapPratinjau(${item.id})">🔍 Lihat</button>
                 <button class="btn-rekap btn-rekap-edit" onclick="editRekapData(${item.id})">✏️ Edit</button>
                 <button class="btn-rekap btn-rekap-delete" onclick="deleteRekapData(${item.id})">🗑️ Hapus</button>
               </div>
-            </div>
-          `;
+            </div>`;
           container.appendChild(div);
         });
       };
     }
 
-    // FEATURE: VIEW DATA FROM REKAPAN
-    function viewRekapData(id) {
+    function showRekapPratinjau(id) {
       const transaction = db.transaction(["sync_queue"], "readonly");
       const store = transaction.objectStore("sync_queue");
       const getReq = store.get(id);
-
       getReq.onsuccess = () => {
         const item = getReq.result;
+        currentViewData = item;
         document.getElementById('res_nama_kk').innerText = item.Nama_KK + " (Draft)";
-        generatePreview(item);
-        document.getElementById('adviceContent').innerHTML = "<b>Status:</b> Tersimpan secara lokal di memori HP.";
-        
-        // Hide save/excel buttons in view mode
-        document.getElementById('btn_modal_excel').style.display = 'none';
+        document.getElementById('preview_head').innerHTML = "<tr><th>Tgl</th><th>Nama</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th></tr>";
+        document.getElementById('preview_body').innerHTML = `<tr><td>${item.Tanggal}</td><td>${item.Nama_KK}</td><td>${item.Status_P1}</td><td>${item.Status_P2}</td><td>${item.Status_P3}</td><td>${item.Status_P4}</td><td>${item.Status_P5}</td></tr>`;
         document.getElementById('btn_modal_save').style.display = 'none';
-        
         document.getElementById('modalResult').style.display = 'flex';
       };
     }
 
-    // FEATURE: DELETE DATA FROM REKAPAN
     function deleteRekapData(id) {
       if (confirm("Apakah Anda yakin ingin menghapus data ini dari antrean?")) {
         const delTx = db.transaction(["sync_queue"], "readwrite");
         delTx.objectStore("sync_queue").delete(id);
-        delTx.oncomplete = () => {
-          updateQueueUI();
-          refreshRekapan();
-        };
+        delTx.oncomplete = () => { updateQueueUI(); refreshRekapan(); };
       }
     }
 
-    // FEATURE: EDIT DATA FROM REKAPAN
     function editRekapData(id) {
       const transaction = db.transaction(["sync_queue"], "readonly");
       const store = transaction.objectStore("sync_queue");
       const getReq = store.get(id);
-
       getReq.onsuccess = () => {
         const item = getReq.result;
-        if (confirm("Data akan dikembalikan ke Form untuk diedit. Lanjutkan?")) {
-          // Fill form with this data
-          fillFormWithData(item);
-          // Delete from queue
-          const delTx = db.transaction(["sync_queue"], "readwrite");
-          delTx.objectStore("sync_queue").delete(id);
-          delTx.oncomplete = () => {
-            updateQueueUI();
-            switchPage('form_page', document.getElementById('nav_form'));
-            alert("Data berhasil dimuat ke form. Silakan edit dan simpan kembali.");
-          };
-        }
+        fillFormWithData(item);
+        const delTx = db.transaction(["sync_queue"], "readwrite");
+        delTx.objectStore("sync_queue").delete(id);
+        delTx.oncomplete = () => {
+          updateQueueUI();
+          switchPage('form_page', document.getElementById('nav_form'));
+        };
       };
     }
 
     function fillFormWithData(d) {
       document.getElementById('desa').value = d.Desa || "";
-      document.getElementById('kecamatan').value = d.Kecamatan || "";
+      document.getElementById('kecamatan').value = d.Kecamatan || "SAMPANAHAN";
       document.getElementById('tanggal').value = d.Tanggal || "";
       document.getElementById('petugas').value = d.Petugas || "";
       document.getElementById('no_kk').value = d.No_KK || "";
       document.getElementById('nama_kk').value = d.Nama_KK || "";
       document.getElementById('jml_jiwa').value = d.Jml_Jiwa || "";
       document.getElementById('jml_menetap').value = d.Jml_Menetap || "";
-      
-      // Load raw inputs
       for(let i=1; i<=5; i++) {
         const raw = d[`P${i}_Raw`];
-        if(raw) {
-          Object.keys(raw).forEach(key => {
-            const el = document.getElementById(key);
-            if(el) el.value = raw[key];
-          });
-        }
+        if(raw) { Object.keys(raw).forEach(key => { const el = document.getElementById(key); if(el) el.value = raw[key]; }); }
       }
-      // Re-trigger calculations
+      if(d.P2_Checkboxes) {
+        document.querySelectorAll('.p2-checkbox').forEach(cb => { cb.checked = d.P2_Checkboxes.includes(cb.value); });
+        const el = document.getElementById('p2_3');
+        if(el && el.value === 'Y') document.getElementById('p2_waktu_kritis').style.display = 'block';
+      }
       hitungStatusP1(); hitungStatusP2(); hitungStatusP3(); hitungStatusP4(); hitungStatusP5();
-      // Unlock KK fields so user can edit immediately
       unlockKK();
-    }
-
-    function sendSingleQueue(id) {
-      if (!navigator.onLine) { alert("Anda masih Offline. Sambungkan internet dahulu!"); return; }
-      
-      const transaction = db.transaction(["sync_queue"], "readonly");
-      const store = transaction.objectStore("sync_queue");
-      const getReq = store.get(id);
-
-      getReq.onsuccess = () => {
-        const data = getReq.result;
-        const { id: queueId, timestamp, ...payload } = data;
-        
-        document.getElementById('loader').style.display = 'flex';
-        
-        if (typeof google !== 'undefined' && google.script) {
-          google.script.run.withSuccessHandler(() => {
-            removeAndRefresh(id);
-          }).processForm(payload);
-        } else {
-          fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) })
-            .then(() => removeAndRefresh(id))
-            .catch(() => {
-              document.getElementById('loader').style.display = 'none';
-              alert("Gagal kirim. Sinyal tidak stabil.");
-            });
-        }
-      };
-    }
-
-    function removeAndRefresh(id) {
-      const delTx = db.transaction(["sync_queue"], "readwrite");
-      delTx.objectStore("sync_queue").delete(id);
-      delTx.oncomplete = () => {
-        document.getElementById('loader').style.display = 'none';
-        updateQueueUI();
-        refreshRekapan();
-      };
-    }
-
-    function updateQueueUI() {
-      if (!db) return;
-      const transaction = db.transaction(["sync_queue"], "readonly");
-      const store = transaction.objectStore("sync_queue");
-      const countRequest = store.count();
-      countRequest.onsuccess = () => {
-        const count = countRequest.result;
-        const banner = document.getElementById('sync_status');
-        document.getElementById('queue_count').innerText = count;
-        banner.style.display = count > 0 ? 'block' : 'none';
-      };
-    }
-
-    function syncData() {
-      if (!db || !navigator.onLine) return;
-      const transaction = db.transaction(["sync_queue"], "readwrite");
-      const store = transaction.objectStore("sync_queue");
-      const getAll = store.getAll();
-
-      getAll.onsuccess = () => {
-        const items = getAll.result;
-        if (items.length === 0) return;
-        
-        items.forEach(item => {
-          const { id, timestamp, ...dataOnly } = item;
-          if (typeof google !== 'undefined' && google.script) {
-            google.script.run.withSuccessHandler(() => {
-              const dTx = db.transaction(["sync_queue"], "readwrite");
-              dTx.objectStore("sync_queue").delete(id);
-              updateQueueUI();
-              refreshRekapan();
-            }).processForm(dataOnly);
-          } else {
-            fetch(GAS_URL, { method: "POST", body: JSON.stringify(dataOnly) })
-              .then(() => {
-                const dTx = db.transaction(["sync_queue"], "readwrite");
-                dTx.objectStore("sync_queue").delete(id);
-                updateQueueUI();
-                refreshRekapan();
-              });
-          }
-        });
-      };
-    }
-
-    function saveToOfflineQueue(data) {
-      const transaction = db.transaction(["sync_queue"], "readwrite");
-      const store = transaction.objectStore("sync_queue");
-      store.add({ ...data, timestamp: new Date().toISOString() });
-      alert("⚠️ DATA DISIMPAN DI REKAPAN (Lokal).\nKirim nanti saat internet stabil di menu Rekapan.");
-      document.getElementById('loader').style.display = 'none';
-      localStorage.removeItem('stbm_draft');
-      updateQueueUI();
-      location.reload();
     }
 
     function autoFillPetugas() {
@@ -705,9 +806,7 @@
       if (mapping[desa]) petugasInput.value = mapping[desa];
     }
 
-    function saveDraft() {
-        localStorage.setItem('stbm_draft', JSON.stringify(getData()));
-    }
+    function saveDraft() { localStorage.setItem('stbm_draft', JSON.stringify(getData())); }
 
     function loadDraft() {
         const draft = localStorage.getItem('stbm_draft');
@@ -722,88 +821,44 @@
             document.getElementById('jml_jiwa').value = d.Jml_Jiwa || "";
             document.getElementById('jml_menetap').value = d.Jml_Menetap || "";
             for(let i=1; i<=5; i++) {
-                const inputs = document.querySelectorAll(`.p${i}-input`);
-                inputs.forEach(input => {
-                    if(d[`P${i}_Raw`]) {
-                        const val = d[`P${i}_Raw`][input.id];
-                        if(val) input.value = val;
-                    }
-                });
+                const raw = d[`P${i}_Raw`];
+                if(raw) { Object.keys(raw).forEach(key => { const el = document.getElementById(key); if(el) el.value = raw[key]; }); }
+            }
+            if(d.P2_Checkboxes) {
+                document.querySelectorAll('.p2-checkbox').forEach(cb => { cb.checked = d.P2_Checkboxes.includes(cb.value); });
+                const el = document.getElementById('p2_3');
+                if(el && el.value === 'Y') document.getElementById('p2_waktu_kritis').style.display = 'block';
             }
             hitungStatusP1(); hitungStatusP2(); hitungStatusP3(); hitungStatusP4(); hitungStatusP5();
         }
     }
 
-    function toggleCard(cardId) {
-      if (!isKKLocked) return; 
-      document.getElementById(cardId).classList.toggle('card-collapsed');
-    }
-
     function validateAndLock() {
       const inputs = document.querySelectorAll('.kk-input');
-      const noKK = document.getElementById('no_kk').value;
-      const jiwa = parseInt(document.getElementById('jml_jiwa').value);
-      const menetap = parseInt(document.getElementById('jml_menetap').value);
-
       let valid = true;
       inputs.forEach(i => { if(!i.value) valid = false; });
-      if(!valid) { alert("Lengkapi semua Identitas KK!"); return; }
-      if(noKK.length !== 16) { alert("Nomor KK harus 16 digit!"); return; }
-      if(menetap > jiwa) { alert("Menetap tidak boleh > Jiwa!"); return; }
-
-      document.getElementById('loader').style.display = 'flex';
-      
-      if (typeof google !== 'undefined' && google.script) {
-        google.script.run.withSuccessHandler(existingData => {
-          document.getElementById('loader').style.display = 'none';
-          if (existingData) {
-            if (confirm(`Data No KK ${noKK} sudah ada (${existingData.Nama_KK}). Update?`)) lockKK();
-          } else { lockKK(); }
-        }).checkDuplicateKK(noKK);
-      } else {
-        lockKK();
-        document.getElementById('loader').style.display = 'none';
-      }
-    }
-
-    function lockKK() {
-      const inputs = document.querySelectorAll('.kk-input');
-      inputs.forEach(i => {
-        if(i.tagName === "SELECT") i.disabled = true;
-        else i.readOnly = true;
-      });
+      if(!valid) { alert("Lengkapi Identitas!"); return; }
+      if(document.getElementById('no_kk').value.length !== 16) { alert("KK harus 16 digit!"); return; }
+      const inputsLock = document.querySelectorAll('.kk-input');
+      inputsLock.forEach(i => { if(i.tagName === "SELECT") i.disabled = true; else i.readOnly = true; });
       isKKLocked = true;
       document.getElementById('btn_save_kk').style.display = 'none';
       document.getElementById('btn_edit_kk').style.display = 'block';
       document.getElementById('kuis_container').style.display = 'block';
       document.getElementById('pilarProgress').style.display = 'block';
-      document.getElementById('card_lokasi').classList.add('card-collapsed');
-      document.getElementById('card_identitas').classList.add('card-collapsed');
-      document.getElementById('badge_lokasi').style.display = 'inline-block';
-      document.getElementById('badge_identitas').style.display = 'inline-block';
       updateProgress(1);
     }
 
     function unlockKK() {
       const inputs = document.querySelectorAll('.kk-input');
-      inputs.forEach(i => {
-        if(i.id !== "petugas" && i.id !== "puskesmas") {
-          if(i.tagName === "SELECT") i.disabled = false;
-          else i.readOnly = false;
-        }
-      });
+      inputs.forEach(i => { if(i.id !== "petugas" && i.id !== "puskesmas") { if(i.tagName === "SELECT") i.disabled = false; else i.readOnly = false; } });
       isKKLocked = false;
       document.getElementById('btn_save_kk').style.display = 'block';
       document.getElementById('btn_edit_kk').style.display = 'none';
-      document.getElementById('card_lokasi').classList.remove('card-collapsed');
-      document.getElementById('card_identitas').classList.remove('card-collapsed');
-      document.getElementById('badge_lokasi').style.display = 'none';
-      document.getElementById('badge_identitas').style.display = 'none';
     }
 
     function updateProgress(step) {
-        const percent = (step / 5) * 100;
-        document.getElementById('progress_fill').style.width = percent + '%';
+        document.getElementById('progress_fill').style.width = (step / 5) * 100 + '%';
         document.getElementById('pilar_title').innerText = `📋 Pilar ${step} dari 5`;
     }
 
@@ -814,91 +869,83 @@
       window.scrollTo(0,0);
     }
 
-    function checkPilarComplete(className, btnId) {
-      const inputs = document.querySelectorAll('.' + className);
-      let complete = true;
-      inputs.forEach(input => { if (input.value === "") complete = false; });
-      const btn = document.getElementById(btnId);
-      if (btn) btn.style.display = complete ? "block" : "none";
-      checkAllComplete();
-    }
-
-    function checkAllComplete() {
-        const p1 = Array.from(document.querySelectorAll('.p1-input')).every(i => i.value !== "");
-        const p2 = Array.from(document.querySelectorAll('.p2-input')).every(i => i.value !== "");
-        const p3 = Array.from(document.querySelectorAll('.p3-input')).every(i => i.value !== "");
-        const p4 = Array.from(document.querySelectorAll('.p4-input')).every(i => i.value !== "");
-        const p5 = document.getElementById('p5_1').value !== "";
-        document.getElementById('btn_excel_main').style.display = (p1 && p2 && p3 && p4 && p5) ? 'flex' : 'none';
-    }
-
     function hitungStatusP1() {
       const q1 = document.getElementById('p1_1').value; 
       const q2 = document.getElementById('p1_2').value; 
       const q3 = document.getElementById('p1_3').value; 
       const q4 = document.getElementById('p1_4').value; 
-      checkPilarComplete('p1-input', 'btn_next_p1');
-      if (!q1 || !q2 || !q3 || !q4) return;
+      const btn = document.getElementById('btn_next_p1');
+      const isComplete = (q1 && q2 && q3 && q4);
+      if(btn) btn.style.display = isComplete ? "block" : "none";
+      if(!isComplete) return;
       if (q1 === "T" || q3 === "D") pilar1Result = "OD TERTUTUP";
       else if (q1 === "Y" && q2 === "T") pilar1Result = "SHARING";
       else if (q1 === "Y" && q2 === "Y" && q4 === "Y" && q3 === "A") pilar1Result = "AMAN";
       else if (q1 === "Y" && q2 === "Y" && q4 === "Y" && q3 === "B") pilar1Result = "LAYAK";
       else pilar1Result = "BELUM LAYAK";
       document.getElementById('sum_p1').innerText = pilar1Result;
+      checkAllComplete();
+    }
+
+    function handleP2_3(el) {
+        const checkboxGroup = document.getElementById('p2_waktu_kritis');
+        if (el.value === "Y") checkboxGroup.style.display = 'block';
+        else { checkboxGroup.style.display = 'none'; document.querySelectorAll('.p2-checkbox').forEach(cb => cb.checked = false); }
     }
 
     function hitungStatusP2() {
       const q1 = document.getElementById('p2_1').value;
       const q2 = document.getElementById('p2_2').value;
       const q3 = document.getElementById('p2_3').value;
-      checkPilarComplete('p2-input', 'btn_next_p2');
-      if (!q1 || !q2 || !q3) return;
-      pilar2Result = (q1 === "Y" && q2 === "Y" && q3 === "Y") ? "CTPS" : "TIDAK CTPS";
+      const checkedCount = document.querySelectorAll('.p2-checkbox:checked').length;
+      const btn = document.getElementById('btn_next_p2');
+      const isComplete = (q1 && q2 && q3);
+      if(btn) btn.style.display = isComplete ? "block" : "none";
+      if(!isComplete) return;
+      pilar2Result = (q1 === "Y" && q2 === "Y" && q3 === "Y" && checkedCount >= 3) ? "CTPS" : "TIDAK CTPS";
       document.getElementById('sum_p2').innerText = pilar2Result;
+      checkAllComplete();
     }
 
     function hitungStatusP3() {
-      const vals = Array.from(document.querySelectorAll('.p3-input')).map(i => i.value);
-      checkPilarComplete('p3-input', 'btn_next_p3');
-      if (vals.includes("")) return;
-      pilar3Result = vals.every(v => v === "Y") ? "PAMMRT" : "TIDAK PAMMRT";
+      const inputs = document.querySelectorAll('.p3-input');
+      const isComplete = Array.from(inputs).every(i => i.value !== "");
+      const btn = document.getElementById('btn_next_p3');
+      if(btn) btn.style.display = isComplete ? "block" : "none";
+      if(!isComplete) return;
+      pilar3Result = Array.from(inputs).every(i => i.value === "Y") ? "PAMMRT" : "TIDAK PAMMRT";
       document.getElementById('sum_p3').innerText = pilar3Result;
+      checkAllComplete();
     }
 
     function hitungStatusP4() {
-      const vals = Array.from(document.querySelectorAll('.p4-input')).map(i => i.value);
-      checkPilarComplete('p4-input', 'btn_next_p4');
-      if (vals.includes("")) return;
-      pilar4Result = vals.every(v => v === "Y") ? "PSRT" : "TIDAK PSRT";
+      const inputs = document.querySelectorAll('.p4-input');
+      const isComplete = Array.from(inputs).every(i => i.value !== "");
+      const btn = document.getElementById('btn_next_p4');
+      if(btn) btn.style.display = isComplete ? "block" : "none";
+      if(!isComplete) return;
+      pilar4Result = Array.from(inputs).every(i => i.value === "Y") ? "PSRT" : "TIDAK PSRT";
       document.getElementById('sum_p4').innerText = pilar4Result;
+      checkAllComplete();
     }
 
     function hitungStatusP5() {
-      const q = document.getElementById('p5_1').value;
-      checkAllComplete();
-      if (!q) return;
-      pilar5Result = (q === "Y") ? "PLCRT" : "TIDAK PLCRT";
+      const inputs = document.querySelectorAll('.p5-input');
+      const isComplete = Array.from(inputs).every(i => i.value !== "");
+      if(!isComplete) return;
+      pilar5Result = Array.from(inputs).every(i => i.value === "Y") ? "PLCRT" : "TIDAK PLCRT";
       document.getElementById('sum_p5').innerText = pilar5Result;
+      checkAllComplete();
     }
 
-    function generatePreview(data) {
-      currentViewData = data;
-      const row = [data.Tanggal, data.Nama_KK, data.No_KK, data.Status_P1, data.Status_P2, data.Status_P3, data.Status_P4, data.Status_P5];
-      document.getElementById('preview_head').innerHTML = "<tr><th>Tgl</th><th>Nama</th><th>No KK</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th></tr>";
-      document.getElementById('preview_body').innerHTML = "<tr>" + row.map(r => `<td>${r}</td>`).join("") + "</tr>";
-    }
-
-    function showAnalisa() {
-      const data = getData();
-      document.getElementById('res_nama_kk').innerText = data.Nama_KK;
-      generatePreview(data);
-      document.getElementById('adviceContent').innerHTML = "<b>Saran:</b> Pastikan semua pilar terpenuhi untuk lingkungan sehat.";
-      
-      // Show action buttons for regular preview
-      document.getElementById('btn_modal_excel').style.display = 'flex';
-      document.getElementById('btn_modal_save').style.display = 'flex';
-      
-      document.getElementById('modalResult').style.display = 'flex';
+    function checkAllComplete() {
+        const p1 = document.getElementById('p1_1').value && document.getElementById('p1_3').value;
+        const p2 = document.getElementById('p2_1').value && document.getElementById('p2_3').value;
+        const p3 = document.getElementById('p3_1a').value && document.getElementById('p3_4').value;
+        const p4 = document.getElementById('p4_1').value && document.getElementById('p4_4').value;
+        const p5 = document.getElementById('p5_1').value && document.getElementById('p5_3').value;
+        const btnSave = document.getElementById('btn_excel_main');
+        if(btnSave) btnSave.style.display = (p1 && p2 && p3 && p4 && p5) ? 'flex' : 'none';
     }
 
     function closeModal() { document.getElementById('modalResult').style.display = 'none'; }
@@ -920,7 +967,8 @@
         Jml_Jiwa: document.getElementById('jml_jiwa').value,
         Jml_Menetap: document.getElementById('jml_menetap').value,
         Status_P1: pilar1Result, Status_P2: pilar2Result, Status_P3: pilar3Result, Status_P4: pilar4Result, Status_P5: pilar5Result,
-        P1_Raw: getRaw(1), P2_Raw: getRaw(2), P3_Raw: getRaw(3), P4_Raw: getRaw(4), P5_Raw: getRaw(5)
+        P1_Raw: getRaw(1), P2_Raw: getRaw(2), P3_Raw: getRaw(3), P4_Raw: getRaw(4), P5_Raw: getRaw(5),
+        P2_Checkboxes: Array.from(document.querySelectorAll('.p2-checkbox:checked')).map(cb => cb.value)
       };
     }
 
@@ -930,12 +978,42 @@
       if (!navigator.onLine) { saveToOfflineQueue(data); return; }
       document.getElementById('loader').style.display = 'flex';
       if (typeof google !== 'undefined' && google.script) {
-        google.script.run.withSuccessHandler(() => {
-          alert("Berhasil!"); localStorage.removeItem('stbm_draft'); location.reload();
-        }).withFailureHandler(() => saveToOfflineQueue(data)).processForm(data); 
-      } else {
-        saveToOfflineQueue(data);
-      }
+        google.script.run.withSuccessHandler(() => { alert("Berhasil!"); localStorage.removeItem('stbm_draft'); location.reload(); }).processForm(data);
+      } else { saveToOfflineQueue(data); }
+    }
+
+    function saveToOfflineQueue(data) {
+      const transaction = db.transaction(["sync_queue"], "readwrite");
+      transaction.objectStore("sync_queue").add({ ...data, timestamp: new Date().toISOString() });
+      alert("⚠️ Tersimpan di Antrean Offline (Menu Rekapan).");
+      localStorage.removeItem('stbm_draft');
+      location.reload();
+    }
+
+    function syncData() {
+      if (!db || !navigator.onLine) return;
+      const store = db.transaction(["sync_queue"], "readwrite").objectStore("sync_queue");
+      const getAll = store.getAll();
+      getAll.onsuccess = () => {
+        getAll.result.forEach(item => {
+          if (typeof google !== 'undefined' && google.script) {
+            google.script.run.withSuccessHandler(() => {
+              const dTx = db.transaction(["sync_queue"], "readwrite");
+              dTx.objectStore("sync_queue").delete(item.id);
+              updateQueueUI(); refreshRekapan();
+            }).processForm(item);
+          }
+        });
+      };
+    }
+
+    function updateQueueUI() {
+      if (!db) return;
+      const countReq = db.transaction(["sync_queue"], "readonly").objectStore("sync_queue").count();
+      countReq.onsuccess = () => {
+        document.getElementById('queue_count').innerText = countReq.result;
+        document.getElementById('sync_status').style.display = countReq.result > 0 ? 'block' : 'none';
+      };
     }
 
     function exportToExcel() {
@@ -945,6 +1023,8 @@
       XLSX.utils.book_append_sheet(wb, ws, "STBM");
       XLSX.writeFile(wb, `STBM_${d.Nama_KK}.xlsx`);
     }
+
+    function toggleCard(id) { if(isKKLocked) document.getElementById(id).classList.toggle('card-collapsed'); }
   </script>
 </body>
 </html>
