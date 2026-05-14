@@ -20,6 +20,24 @@
       color: #f8fafc;
       margin: 0; padding: 15px;
     }
+
+    /* Status Antrean Style */
+    #sync_status {
+      display: none;
+      position: sticky;
+      top: 0;
+      z-index: 1001;
+      background: var(--warning);
+      color: #000;
+      text-align: center;
+      padding: 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      margin-bottom: 10px;
+    }
+
     /* Progress Bar Styles */
     .progress-container {
       width: 100%; height: 8px; background: rgba(255,255,255,0.1);
@@ -236,6 +254,10 @@
 </head>
 <body>
 
+  <div id="sync_status">
+    ⏳ Menunggu Sinyal: <span id="queue_count">0</span> Data belum terkirim
+  </div>
+
   <div class="loading-overlay" id="loader">
     <div class="spinner"></div>
     <p style="margin-top: 15px; font-size: 0.9rem; color: var(--primary);">Memproses ke Database...</p>
@@ -450,7 +472,95 @@
     let pilar1Result = "", pilar2Result = "", pilar3Result = "", pilar4Result = "", pilar5Result = "";
     let isKKLocked = false;
 
+    // --- LOGIKA INDEXEDDB UNTUK OFFLINE QUEUE ---
+    const dbName = "STBM_Offline_DB";
+    let db;
+    const dbRequest = indexedDB.open(dbName, 1);
+
+    dbRequest.onupgradeneeded = (e) => {
+      db = e.target.result;
+      if (!db.objectStoreNames.contains("sync_queue")) {
+        db.createObjectStore("sync_queue", { keyPath: "id", autoIncrement: true });
+      }
+    };
+
+    dbRequest.onsuccess = (e) => { 
+      db = e.target.result; 
+      updateQueueUI();
+      syncData(); 
+    };
+
     window.onload = function() { loadDraft(); };
+
+    // Jalankan sinkronisasi saat internet kembali aktif
+    window.addEventListener('online', () => {
+      console.log("Sinyal kembali! Memulai sinkronisasi...");
+      syncData();
+    });
+
+    function updateQueueUI() {
+      if (!db) return;
+      const transaction = db.transaction(["sync_queue"], "readonly");
+      const store = transaction.objectStore("sync_queue");
+      const countRequest = store.count();
+      countRequest.onsuccess = () => {
+        const count = countRequest.result;
+        const banner = document.getElementById('sync_status');
+        if (count > 0) {
+          banner.style.display = 'block';
+          document.getElementById('queue_count').innerText = count;
+        } else {
+          banner.style.display = 'none';
+        }
+      };
+    }
+
+    function syncData() {
+      if (!db || !navigator.onLine) return;
+
+      const transaction = db.transaction(["sync_queue"], "readwrite");
+      const store = transaction.objectStore("sync_queue");
+      const getAll = store.getAll();
+
+      getAll.onsuccess = () => {
+        const items = getAll.result;
+        if (items.length === 0) return;
+
+        items.forEach(item => {
+          const { id, ...dataOnly } = item;
+          
+          if (typeof google !== 'undefined' && google.script) {
+            google.script.run.withSuccessHandler(() => {
+              const deleteTx = db.transaction(["sync_queue"], "readwrite");
+              deleteTx.objectStore("sync_queue").delete(id);
+              console.log(`Data ID ${id} tersinkronisasi.`);
+              updateQueueUI();
+            }).processForm(dataOnly);
+          } else {
+            // Fallback fetch untuk testing browser biasa
+            fetch(GAS_URL, { method: "POST", body: JSON.stringify(dataOnly) })
+              .then(() => {
+                const deleteTx = db.transaction(["sync_queue"], "readwrite");
+                deleteTx.objectStore("sync_queue").delete(id);
+                updateQueueUI();
+              });
+          }
+        });
+      };
+    }
+
+    function saveToOfflineQueue(data) {
+      const transaction = db.transaction(["sync_queue"], "readwrite");
+      const store = transaction.objectStore("sync_queue");
+      store.add({ ...data, timestamp: new Date().toISOString() });
+      
+      alert("Sinyal lemah/tidak ada. Data DISIMPAN LOKAL dan akan terkirim otomatis saat ada sinyal.");
+      document.getElementById('loader').style.display = 'none';
+      localStorage.removeItem('stbm_draft');
+      updateQueueUI();
+      location.reload();
+    }
+    // --- AKHIR LOGIKA OFFLINE ---
 
     function saveDraft() {
         const data = getData();
@@ -501,10 +611,8 @@
       if(noKK.length !== 16) { alert("Nomor KK harus tepat 16 digit!"); return; }
       if(menetap > jiwa) { alert("Jumlah menetap tidak boleh lebih besar dari jumlah jiwa!"); return; }
 
-      // Validasi Duplikat ke GAS
       document.getElementById('loader').style.display = 'flex';
       
-      // Jika dijalankan sebagai Web App di Google Apps Script
       if (typeof google !== 'undefined' && google.script) {
         google.script.run.withSuccessHandler(existingData => {
           document.getElementById('loader').style.display = 'none';
@@ -516,7 +624,6 @@
           }
         }).checkDuplicateKK(noKK);
       } else {
-        // Fallback untuk testing menggunakan fetch/URL GAS jika dijalankan di luar lingkungan google.script.run
         fetch(`${GAS_URL}?action=checkDuplicate&no_kk=${noKK}`)
           .then(res => res.json())
           .then(data => {
@@ -530,7 +637,7 @@
           })
           .catch(() => {
             document.getElementById('loader').style.display = 'none';
-            lockKK(); // Tetap jalan jika request gagal
+            lockKK();
           });
       }
     }
@@ -716,17 +823,29 @@
     function simpanData() {
       if(!confirm("Simpan data ini secara permanen ke database?")) return;
       const data = getData();
+
+      // CEK KONEKSI: Jika Offline, masukkan ke antrean IndexedDB
+      if (!navigator.onLine) {
+        saveToOfflineQueue(data);
+        return;
+      }
+
       document.getElementById('loader').style.display = 'flex';
 
       if (typeof google !== 'undefined' && google.script) {
-        google.script.run.withSuccessHandler(res => {
+        google.script.run
+          .withSuccessHandler(res => {
             document.getElementById('loader').style.display = 'none';
             alert("Berhasil disimpan!");
             localStorage.removeItem('stbm_draft');
             location.reload();
-        }).processForm(data); 
+          })
+          .withFailureHandler(err => {
+            // Jika status online tapi gagal kirim (sinyal tidak stabil)
+            saveToOfflineQueue(data);
+          })
+          .processForm(data); 
       } else {
-        // Jika testing via Web Browser biasa menggunakan link exec
         fetch(GAS_URL, {
           method: "POST",
           body: JSON.stringify(data)
@@ -738,8 +857,7 @@
           location.reload();
         })
         .catch(() => {
-          document.getElementById('loader').style.display = 'none';
-          alert("Gagal menyimpan ke database cloud. Cek koneksi atau link script.");
+          saveToOfflineQueue(data);
         });
       }
     }
