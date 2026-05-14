@@ -306,7 +306,7 @@
         </div>
         <div class="input-box">
           <label>Desa/Kel</label>
-          <select id="desa" class="kk-input" onchange="saveDraft()">
+          <select id="desa" class="kk-input" onchange="autoFillPetugas(); saveDraft();">
             <option value="" disabled selected>Pilih Desa</option>
             <option value="SAMPANAHAN HILIR">SAMPANAHAN HILIR</option>
             <option value="SAMPANAHAN HULU">SAMPANAHAN HULU</option>
@@ -561,6 +561,23 @@
       location.reload();
     }
     // --- AKHIR LOGIKA OFFLINE ---
+
+    // --- LOGIKA AUTO FILL PETUGAS ---
+    function autoFillPetugas() {
+      const desa = document.getElementById('desa').value;
+      const petugasInput = document.getElementById('petugas');
+      
+      const mapping = {
+        "SAMPANAHAN HILIR": "Noor Latifah, S.Tr.Kes",
+        "SAMPANAHAN HULU": "Hapipah Ambarwati, A. Md. Kes",
+        "SUKA MAJU": "Hapipah Ambarwati, A. Md. Kes",
+        "BANJARSARI": "Noor Latifah, S.Tr.Kes"
+      };
+      
+      if (mapping[desa]) {
+        petugasInput.value = mapping[desa];
+      }
+    }
 
     function saveDraft() {
         const data = getData();
