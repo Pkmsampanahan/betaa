@@ -317,7 +317,8 @@
         <div class="input-box"><label>Kecamatan</label><input type="text" id="kecamatan" value="SAMPANAHAN" class="kk-input" oninput="saveDraft()"></div>
         <div class="input-box"><label>Tanggal</label><input type="date" id="tanggal" class="kk-input" onchange="saveDraft()"></div>
       </div>
-      <div class="input-box"><label>Nama Petugas Moniver</label><input type="text" id="petugas" class="kk-input" oninput="saveDraft()"></div>
+      <!-- NAMA PETUGAS DI LOCK (READONLY) AGAR TIDAK BISA DI EDIT MANUAL -->
+      <div class="input-box"><label>Nama Petugas Moniver</label><input type="text" id="petugas" class="kk-input" oninput="saveDraft()" readonly></div>
     </div>
   </div>
 
@@ -683,8 +684,12 @@
     function unlockKK() {
       const inputs = document.querySelectorAll('.kk-input');
       inputs.forEach(i => {
-        if(i.tagName === "SELECT") i.disabled = false;
-        else i.readOnly = false;
+        if(i.id === "petugas") {
+             i.readOnly = true; // Petugas tetap readonly meski KK di-unlock
+        } else {
+             if(i.tagName === "SELECT") i.disabled = false;
+             else i.readOnly = false;
+        }
       });
 
       isKKLocked = false;
