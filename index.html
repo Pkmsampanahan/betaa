@@ -219,9 +219,27 @@
     }
     
     #kuis_container { display: none; }
+
+    /* Loding state */
+    .loading-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.8); z-index: 10000;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 4px solid rgba(14, 165, 233, 0.1);
+      border-left-color: var(--primary); border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
+
+  <div class="loading-overlay" id="loader">
+    <div class="spinner"></div>
+    <p style="margin-top: 15px; font-size: 0.9rem; color: var(--primary);">Memproses ke Database...</p>
+  </div>
 
   <div class="progress-container" id="pilarProgress">
     <div id="progress_fill"></div>
@@ -296,7 +314,7 @@
         <div class="input-box"><label>Jml Jiwa</label><input type="number" id="jml_jiwa" class="kk-input" oninput="saveDraft()"></div>
         <div class="input-box"><label>Jml Menetap</label><input type="number" id="jml_menetap" class="kk-input" oninput="saveDraft()"></div>
       </div>
-      <button id="btn_save_kk" class="btn-kk btn-save-kk" onclick="lockKK()">SIMPAN IDENTITAS KK</button>
+      <button id="btn_save_kk" class="btn-kk btn-save-kk" onclick="validateAndLock()">SIMPAN IDENTITAS KK</button>
       <button id="btn_edit_kk" class="btn-kk btn-edit-kk" onclick="unlockKK()">EDIT IDENTITAS KK</button>
     </div>
   </div>
@@ -428,6 +446,7 @@
   </div>
 
   <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzNRUCsdXZYoOMLLVPny4dkaqjfoWFKqF2NqGjBxCtcwjwftP_2LoamPXJh0oywVgYG/exec";
     let pilar1Result = "", pilar2Result = "", pilar3Result = "", pilar4Result = "", pilar5Result = "";
     let isKKLocked = false;
 
@@ -464,14 +483,13 @@
         }
     }
 
-    // Fungsi toggle buka tutup kartu
     function toggleCard(cardId) {
-      if (!isKKLocked) return; // Jangan izinkan toggle manual jika data belum pernah di-lock
+      if (!isKKLocked) return; 
       const card = document.getElementById(cardId);
       card.classList.toggle('card-collapsed');
     }
 
-    function lockKK() {
+    function validateAndLock() {
       const inputs = document.querySelectorAll('.kk-input');
       const noKK = document.getElementById('no_kk').value;
       const jiwa = parseInt(document.getElementById('jml_jiwa').value);
@@ -483,19 +501,53 @@
       if(noKK.length !== 16) { alert("Nomor KK harus tepat 16 digit!"); return; }
       if(menetap > jiwa) { alert("Jumlah menetap tidak boleh lebih besar dari jumlah jiwa!"); return; }
 
+      // Validasi Duplikat ke GAS
+      document.getElementById('loader').style.display = 'flex';
+      
+      // Jika dijalankan sebagai Web App di Google Apps Script
+      if (typeof google !== 'undefined' && google.script) {
+        google.script.run.withSuccessHandler(existingData => {
+          document.getElementById('loader').style.display = 'none';
+          if (existingData) {
+            const conf = confirm(`NIK/Nomor KK ${noKK} sudah tercatat atas nama ${existingData.Nama_KK}.\n\nApakah Anda ingin memperbarui (update) data tersebut?`);
+            if (conf) lockKK();
+          } else {
+            lockKK();
+          }
+        }).checkDuplicateKK(noKK);
+      } else {
+        // Fallback untuk testing menggunakan fetch/URL GAS jika dijalankan di luar lingkungan google.script.run
+        fetch(`${GAS_URL}?action=checkDuplicate&no_kk=${noKK}`)
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('loader').style.display = 'none';
+            if(data.exists) {
+              const conf = confirm(`NIK/Nomor KK ${noKK} sudah tercatat atas nama ${data.Nama_KK}.\n\nApakah Anda ingin memperbarui (update) data tersebut?`);
+              if(conf) lockKK();
+            } else {
+              lockKK();
+            }
+          })
+          .catch(() => {
+            document.getElementById('loader').style.display = 'none';
+            lockKK(); // Tetap jalan jika request gagal
+          });
+      }
+    }
+
+    function lockKK() {
+      const inputs = document.querySelectorAll('.kk-input');
       inputs.forEach(i => {
         if(i.tagName === "SELECT") i.disabled = true;
         else i.readOnly = true;
       });
 
-      // Update state UI
       isKKLocked = true;
       document.getElementById('btn_save_kk').style.display = 'none';
       document.getElementById('btn_edit_kk').style.display = 'block';
       document.getElementById('kuis_container').style.display = 'block';
       document.getElementById('pilarProgress').style.display = 'block';
       
-      // Menutup form lokasi & identitas otomatis
       document.getElementById('card_lokasi').classList.add('card-collapsed');
       document.getElementById('card_identitas').classList.add('card-collapsed');
       document.getElementById('badge_lokasi').style.display = 'inline-block';
@@ -515,7 +567,6 @@
       document.getElementById('btn_save_kk').style.display = 'block';
       document.getElementById('btn_edit_kk').style.display = 'none';
       
-      // Membuka form identitas agar bisa diedit
       document.getElementById('card_lokasi').classList.remove('card-collapsed');
       document.getElementById('card_identitas').classList.remove('card-collapsed');
       document.getElementById('badge_lokasi').style.display = 'none';
@@ -665,16 +716,31 @@
     function simpanData() {
       if(!confirm("Simpan data ini secara permanen ke database?")) return;
       const data = getData();
+      document.getElementById('loader').style.display = 'flex';
+
       if (typeof google !== 'undefined' && google.script) {
         google.script.run.withSuccessHandler(res => {
+            document.getElementById('loader').style.display = 'none';
             alert("Berhasil disimpan!");
             localStorage.removeItem('stbm_draft');
             location.reload();
         }).processForm(data); 
       } else {
-        alert("Simulasi Berhasil: Data tersimpan.");
-        localStorage.removeItem('stbm_draft');
-        closeModal();
+        // Jika testing via Web Browser biasa menggunakan link exec
+        fetch(GAS_URL, {
+          method: "POST",
+          body: JSON.stringify(data)
+        })
+        .then(() => {
+          document.getElementById('loader').style.display = 'none';
+          alert("Berhasil disimpan!");
+          localStorage.removeItem('stbm_draft');
+          location.reload();
+        })
+        .catch(() => {
+          document.getElementById('loader').style.display = 'none';
+          alert("Gagal menyimpan ke database cloud. Cek koneksi atau link script.");
+        });
       }
     }
 
